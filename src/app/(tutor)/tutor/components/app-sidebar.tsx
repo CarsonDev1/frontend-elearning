@@ -27,37 +27,22 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import Image from 'next/image';
 
-// Menu items.
+// Các mục menu.
 const items = [
 	{
-		title: 'Home',
-		url: '/tutor',
-		icon: '/images/learn.svg',
-	},
-	{
-		title: 'Course',
+		title: 'Khóa Học',
 		url: '/tutor/course',
 		icon: '/images/books.svg',
 	},
 	{
-		title: 'Tutors',
-		url: '/tutor/tutors',
-		icon: '/images/tutor.png',
-	},
-	{
-		title: 'Students',
+		title: 'Học Viên',
 		url: '/tutor/students',
 		icon: '/images/student.png',
 	},
 	{
-		title: 'Vouchers',
-		url: '/tutor/vouchers',
-		icon: '/images/gift-voucher.png',
-	},
-	{
-		title: 'Bills',
-		url: '/tutor/bills',
-		icon: '/images/shop.svg',
+		title: 'Hồ sơ',
+		url: '/tutor/profile',
+		icon: '/images/mascot.svg',
 	},
 ];
 
@@ -73,7 +58,7 @@ export function AppSidebar() {
 					<SidebarGroupContent>
 						<SidebarMenu className='space-y-2'>
 							{items.map((item) => {
-								const isActive = pathname === item.url;
+								const isActive = pathname === item.url || '/tutor/course/create';
 								return (
 									<SidebarMenuItem key={item.title}>
 										<SidebarMenuButton
@@ -82,7 +67,7 @@ export function AppSidebar() {
 											className='data-[active=true]:bg-[#ddf4ff] data-[active=true]:text-[#1cb0f6] data-[active=true]:border-[#1cb0f6] data-[active=true]:border py-7 px-4 font-semibold data-[active=true]:font-bold rounded-xl'
 										>
 											<Link href={item.url} className='flex items-center gap-5'>
-												<Image src={item.icon} width={40} height={40} alt='icon' />
+												<Image src={item.icon} width={40} height={40} alt='biểu tượng' />
 												<span className='text-lg'>{item.title}</span>
 											</Link>
 										</SidebarMenuButton>

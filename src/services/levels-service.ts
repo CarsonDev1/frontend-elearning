@@ -54,6 +54,17 @@ const LevelsService = {
     }
   },
 
+  getLevels: async (): Promise<PaginationResponse<Level>> => {
+    try {
+      const response = await api.get<PaginationResponse<Level>>(
+        `/levels`
+      );
+      return response.data;
+    } catch (error: any) {
+      throw handleApiError(error);
+    }
+  },
+
   createLevel: async (levelData: CreateLevelRequest): Promise<Level> => {
     try {
       const response = await api.post<Level>('/levels', levelData);

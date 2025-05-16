@@ -24,14 +24,14 @@ import { Loader2Icon } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 
-// Duolingo-inspired color palette
+// Bảng màu lấy cảm hứng từ Duolingo
 const COLORS = ['#58cc02', '#ff9600', '#ff4b4b', '#1cb0f6', '#ce82ff', '#ffc800'];
 
 const Admin = () => {
 	const { user, isLoading, isAuthenticated } = useAuth();
 	const router = useRouter();
 
-	// Dashboard statistics query
+	// Truy vấn thống kê bảng điều khiển
 	const {
 		data: statistics,
 		isLoading: isLoadingStats,
@@ -40,47 +40,47 @@ const Admin = () => {
 		queryKey: ['dashboardStatistics'],
 		queryFn: () => StatisticsService.getDashboardStatistics(),
 		enabled: isAuthenticated && user?.roles?.[0] === 'ROLE_ADMIN',
-		staleTime: 5 * 60 * 1000, // 5 minutes
+		staleTime: 5 * 60 * 1000, // 5 phút
 		refetchOnWindowFocus: false,
 	});
 
 	useEffect(() => {
-		// If authentication check is complete (not loading)
+		// Nếu xác thực đã hoàn tất (không đang tải)
 		if (!isLoading) {
-			// If user is not authenticated, redirect to login
+			// Nếu người dùng chưa đăng nhập, chuyển hướng đến trang đăng nhập
 			if (!isAuthenticated) {
 				toast({
 					variant: 'destructive',
-					title: 'Access denied',
-					description: 'Please log in to continue.',
+					title: 'Truy cập bị từ chối',
+					description: 'Vui lòng đăng nhập để tiếp tục.',
 				});
 				router.push('/login');
 			}
-			// If user is authenticated but not admin, redirect to home
+			// Nếu người dùng đã đăng nhập nhưng không phải admin, chuyển hướng về trang chủ
 			else if (user?.roles?.[0] !== 'ROLE_ADMIN') {
 				toast({
 					variant: 'destructive',
-					title: 'Permission denied',
-					description: 'You do not have permission to access this page.',
+					title: 'Quyền truy cập bị từ chối',
+					description: 'Bạn không có quyền truy cập trang này.',
 				});
 				router.push('/');
 			}
 		}
 	}, [user, isLoading, isAuthenticated, router]);
 
-	// Show error toast when query fails
+	// Hiển thị thông báo lỗi khi truy vấn thất bại
 	useEffect(() => {
 		if (error) {
 			toast({
 				variant: 'destructive',
-				title: 'Error',
-				description: 'Failed to load dashboard statistics.',
+				title: 'Lỗi',
+				description: 'Không thể tải thống kê bảng điều khiển.',
 			});
-			console.error('Error fetching dashboard data:', error);
+			console.error('Lỗi khi tải dữ liệu bảng điều khiển:', error);
 		}
 	}, [error]);
 
-	// Format revenue data for the chart
+	// Định dạng dữ liệu doanh thu cho biểu đồ
 	const formatRevenueData = () => {
 		if (!statistics?.recentRevenue || statistics.recentRevenue.length === 0) {
 			return [];
@@ -93,7 +93,7 @@ const Admin = () => {
 		}));
 	};
 
-	// Format enrollment data for the pie chart
+	// Định dạng dữ liệu đăng ký cho biểu đồ tròn
 	const formatEnrollmentData = () => {
 		if (!statistics?.enrollmentsByLevel) {
 			return [];
@@ -106,9 +106,9 @@ const Admin = () => {
 		}));
 	};
 
-	// Helper function to get month name
+	// Hàm hỗ trợ để lấy tên tháng
 	const getMonthName = (month: number) => {
-		const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+		const months = ['Th1', 'Th2', 'Th3', 'Th4', 'Th5', 'Th6', 'Th7', 'Th8', 'Th9', 'Th10', 'Th11', 'Th12'];
 		return months[month - 1];
 	};
 
@@ -116,50 +116,45 @@ const Admin = () => {
 		return (
 			<div className='flex items-center justify-center h-screen'>
 				<Loader2Icon className='h-8 w-8 animate-spin text-primary' />
-				<span className='ml-2 text-lg font-medium'>Loading dashboard...</span>
+				<span className='ml-2 text-lg font-medium'>Đang tải bảng điều khiển...</span>
 			</div>
 		);
 	}
 
 	return (
 		<div className='p-6 bg-gray-50 min-h-screen'>
-			<h1 className='text-3xl font-bold mb-8 text-gray-900'>Admin Dashboard</h1>
+			<h1 className='text-3xl font-bold mb-8 text-gray-900'>Bảng Điều Khiển Quản Trị</h1>
 
-			{/* Stats Cards */}
+			{/* Thẻ Thống Kê */}
 			<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8'>
-				<StatCard title='Total Students' value={statistics?.totalStudents || 0} icon='👨‍🎓' color='#58cc02' />
-				<StatCard title='Total Tutors' value={statistics?.totalTutors || 0} icon='👨‍🏫' color='#1cb0f6' />
-				<StatCard title='Total Courses' value={statistics?.totalCourses || 0} icon='📚' color='#ff9600' />
-				<StatCard
-					title='Total Enrollments'
-					value={statistics?.totalEnrollments || 0}
-					icon='📝'
-					color='#ff4b4b'
-				/>
+				<StatCard title='Tổng Học Viên' value={statistics?.totalStudents || 0} icon='👨‍🎓' color='#58cc02' />
+				<StatCard title='Tổng Gia Sư' value={statistics?.totalTutors || 0} icon='👨‍🏫' color='#1cb0f6' />
+				<StatCard title='Tổng Khóa Học' value={statistics?.totalCourses || 0} icon='📚' color='#ff9600' />
+				<StatCard title='Tổng Đăng Ký' value={statistics?.totalEnrollments || 0} icon='📝' color='#ff4b4b' />
 			</div>
 
-			{/* Approval Cards */}
+			{/* Thẻ Phê Duyệt */}
 			<div className='grid grid-cols-1 md:grid-cols-2 gap-6 mb-8'>
 				<ApprovalCard
-					title='Pending Tutor Approvals'
+					title='Gia Sư Chờ Phê Duyệt'
 					count={statistics?.pendingTutorApprovals || 0}
-					actionText='View Tutors'
+					actionText='Xem Gia Sư'
 					onClick={() => router.push('/admin/tutors')}
 				/>
 				<ApprovalCard
-					title='Pending Course Approvals'
+					title='Khóa Học Chờ Phê Duyệt'
 					count={statistics?.pendingCourseApprovals || 0}
-					actionText='View Courses'
+					actionText='Xem Khóa Học'
 					onClick={() => router.push('/admin/course')}
 				/>
 			</div>
 
-			{/* Revenue Chart */}
+			{/* Biểu Đồ Doanh Thu */}
 			<div className='grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8'>
 				<Card className='col-span-1 lg:col-span-2'>
 					<CardHeader>
-						<CardTitle>Revenue Over Time</CardTitle>
-						<CardDescription>Monthly revenue breakdown</CardDescription>
+						<CardTitle>Doanh Thu Theo Thời Gian</CardTitle>
+						<CardDescription>Phân tích doanh thu hàng tháng</CardDescription>
 					</CardHeader>
 					<CardContent>
 						<div className='h-80'>
@@ -183,7 +178,7 @@ const Admin = () => {
 										fill='#58cc02'
 										fillOpacity={0.6}
 										activeDot={{ r: 8 }}
-										name='Revenue'
+										name='Doanh Thu'
 									/>
 								</AreaChart>
 							</ResponsiveContainer>
@@ -192,12 +187,12 @@ const Admin = () => {
 				</Card>
 			</div>
 
-			{/* Enrollments by Level & Total Revenue */}
+			{/* Đăng Ký theo Trình Độ & Tổng Doanh Thu */}
 			<div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
 				<Card>
 					<CardHeader>
-						<CardTitle>Enrollments by Level</CardTitle>
-						<CardDescription>Distribution of student enrollments by course level</CardDescription>
+						<CardTitle>Đăng Ký theo Trình Độ</CardTitle>
+						<CardDescription>Phân bố đăng ký học viên theo trình độ khóa học</CardDescription>
 					</CardHeader>
 					<CardContent>
 						<div className='h-72 flex items-center justify-center'>
@@ -220,7 +215,7 @@ const Admin = () => {
 										</Pie>
 										<Legend />
 										<Tooltip
-											formatter={(value) => [`${value} enrollments`, 'Count']}
+											formatter={(value) => [`${value} đăng ký`, 'Số lượng']}
 											contentStyle={{
 												backgroundColor: '#fff',
 												border: '1px solid #e2e8f0',
@@ -232,7 +227,7 @@ const Admin = () => {
 								</ResponsiveContainer>
 							) : (
 								<div className='text-center text-gray-500'>
-									<p>No enrollment data available</p>
+									<p>Không có dữ liệu đăng ký</p>
 								</div>
 							)}
 						</div>
@@ -241,15 +236,15 @@ const Admin = () => {
 
 				<Card>
 					<CardHeader>
-						<CardTitle>Revenue Summary</CardTitle>
-						<CardDescription>Total revenue and transaction metrics</CardDescription>
+						<CardTitle>Tổng Kết Doanh Thu</CardTitle>
+						<CardDescription>Tổng doanh thu và số liệu giao dịch</CardDescription>
 					</CardHeader>
 					<CardContent>
 						<div className='flex flex-col items-center justify-center h-72'>
 							<div className='text-6xl font-bold text-[#58cc02] mb-4'>
 								${statistics?.totalRevenue.toLocaleString() || '0'}
 							</div>
-							<p className='text-xl text-gray-600 mb-6'>Total Revenue</p>
+							<p className='text-xl text-gray-600 mb-6'>Tổng Doanh Thu</p>
 
 							<div className='w-full max-w-xs bg-gray-100 rounded-full h-4 mb-2'>
 								<div
@@ -260,8 +255,7 @@ const Admin = () => {
 								></div>
 							</div>
 							<p className='text-gray-600'>
-								<span className='font-medium'>{statistics?.totalEnrollments || 0}</span> Total
-								Enrollments
+								<span className='font-medium'>{statistics?.totalEnrollments || 0}</span> Tổng Đăng Ký
 							</p>
 						</div>
 					</CardContent>
@@ -271,7 +265,7 @@ const Admin = () => {
 	);
 };
 
-// Stat Card Component
+// Thành phần Thẻ Thống Kê
 const StatCard = ({ title, value, icon, color }: any) => (
 	<Card className='overflow-hidden border-t-4' style={{ borderTopColor: color }}>
 		<CardContent className='pt-6'>
@@ -291,7 +285,7 @@ const StatCard = ({ title, value, icon, color }: any) => (
 	</Card>
 );
 
-// Approval Card Component
+// Thành phần Thẻ Phê Duyệt
 const ApprovalCard = ({ title, count, actionText, onClick }: any) => (
 	<Card className='overflow-hidden'>
 		<CardContent className='pt-6'>

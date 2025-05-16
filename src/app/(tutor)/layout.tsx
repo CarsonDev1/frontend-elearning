@@ -2,7 +2,7 @@ import { AppProviders } from '@/providers';
 import '../globals.css';
 import { AppBreadcrumb } from '@/components/app-breadcrumb';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
-import { AppSidebar } from '@/app/(tutor)/components/app-sidebar';
+import { AppSidebar } from '@/app/(tutor)/tutor/components/app-sidebar';
 
 export const metadata = {
 	title: 'Next.js',
