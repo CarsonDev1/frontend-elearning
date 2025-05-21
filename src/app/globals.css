@@ -180,3 +180,147 @@ html {
 .dark .show-scrollbar-on-hover:hover {
 	scrollbar-color: hsl(var(--sidebar-primary)) transparent;
 }
+
+.quill-fullscreen {
+	/* Styling cho container khi ở chế độ fullscreen */
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 9999;
+	background: white;
+	padding: 2rem;
+	display: flex;
+	flex-direction: column;
+}
+
+.quill-fullscreen .ql-toolbar {
+	/* Styling cho thanh công cụ Quill ở chế độ fullscreen */
+	position: sticky;
+	top: 0;
+	z-index: 10;
+	background: white;
+	border-top: none;
+	border-left: none;
+	border-right: none;
+	padding: 12px 0;
+	margin-bottom: 1rem;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.quill-fullscreen .ql-container {
+	/* Styling cho phần soạn thảo Quill ở chế độ fullscreen */
+	flex: 1;
+	max-height: none;
+	border: none;
+	font-size: 1.1em;
+}
+
+.quill-fullscreen .ql-editor {
+	/* Styling cho editor Quill ở chế độ fullscreen */
+	max-height: calc(100vh - 10rem);
+	min-height: calc(100vh - 10rem);
+	padding: 1.5rem;
+	font-size: 1.1em;
+	line-height: 1.6;
+	overflow-y: auto;
+	box-shadow: 0 0 5px rgba(0, 0, 0, 0.05);
+	border-radius: 4px;
+	background: #fafafa;
+}
+
+.quill-fullscreen .ql-editor:focus {
+	outline: none;
+	background: white;
+	box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.quill-fullscreen-header {
+	/* Styling cho header ở chế độ fullscreen */
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 1rem;
+	padding: 0.5rem 1rem;
+	background-color: #f3f4f6;
+	border-radius: 4px;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.quill-fullscreen-title {
+	/* Styling cho tiêu đề ở chế độ fullscreen */
+	font-size: 1.25rem;
+	font-weight: 600;
+	color: #374151;
+}
+
+.quill-fullscreen-close {
+	/* Styling cho nút đóng ở chế độ fullscreen */
+	display: flex;
+	align-items: center;
+	padding: 0.5rem 0.75rem;
+	font-size: 0.875rem;
+	font-weight: 500;
+	color: #4b5563;
+	background-color: #e5e7eb;
+	border-radius: 4px;
+	transition: all 0.2s;
+}
+
+.quill-fullscreen-close:hover {
+	background-color: #d1d5db;
+	color: #1f2937;
+}
+
+/* Cải thiện giao diện Quill nói chung */
+.ql-editor {
+	min-height: 200px;
+	background: #fafafa;
+	border-radius: 0 0 4px 4px;
+	font-family: inherit;
+}
+
+.ql-toolbar {
+	border-radius: 4px 4px 0 0;
+	background: #f3f4f6;
+}
+
+.ql-container {
+	border-radius: 0 0 4px 4px;
+	font-family: inherit;
+}
+
+/* Responsive cho màn hình nhỏ */
+@media (max-width: 640px) {
+	.quill-fullscreen {
+		padding: 1rem;
+	}
+
+	.quill-fullscreen .ql-editor {
+		padding: 1rem;
+	}
+
+	.quill-fullscreen-header {
+		padding: 0.5rem;
+	}
+}
+
+/* Ẩn thanh scroll mặc định và thay bằng thanh scroll tùy chỉnh */
+.ql-editor::-webkit-scrollbar {
+	width: 6px;
+}
+
+.ql-editor::-webkit-scrollbar-track {
+	background: #f1f1f1;
+	border-radius: 10px;
+}
+
+.ql-editor::-webkit-scrollbar-thumb {
+	background: #c1c1c1;
+	border-radius: 10px;
+}
+
+.ql-editor::-webkit-scrollbar-thumb:hover {
+	background: #a1a1a1;
+}

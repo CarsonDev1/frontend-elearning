@@ -32,9 +32,9 @@ api.interceptors.response.use(
         originalRequest.headers['Authorization'] = `Bearer ${accessToken}`;
         return api(originalRequest);
       } catch {
-        Cookies.remove('token');
-        Cookies.remove('token');
-        window.location.href = '/login';
+        // Cookies.remove('token');
+        // Cookies.remove('token');
+        // window.location.href = '/login';
       }
     }
     return Promise.reject(error);

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 const CourseOverview = ({ course }: any) => {
 	return (
 		<>
-			<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+			<div className='grid grid-cols-1 gap-6'>
 				<Card>
 					<CardHeader>
 						<CardTitle className='text-lg text-emerald-800'>Mô tả khóa học</CardTitle>
@@ -19,9 +19,12 @@ const CourseOverview = ({ course }: any) => {
 						<CardTitle className='text-lg text-emerald-800'>Tổng quan khóa học</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<p className='whitespace-pre-line text-gray-700'>
-							{course.courseOverview || 'Không có tổng quan'}
-						</p>
+						<p
+							className='whitespace-pre-line text-gray-700'
+							dangerouslySetInnerHTML={{
+								__html: course.courseOverview || 'Không có tổng quan',
+							}}
+						></p>
 					</CardContent>
 				</Card>
 			</div>
@@ -31,9 +34,12 @@ const CourseOverview = ({ course }: any) => {
 					<CardTitle className='text-lg text-emerald-800'>Nội dung bao gồm</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<p className='whitespace-pre-line text-gray-700'>
-						{course.includesDescription || 'Không có thông tin về nội dung bao gồm'}
-					</p>
+					<p
+						className='whitespace-pre-line text-gray-700'
+						dangerouslySetInnerHTML={{
+							__html: course.includesDescription || 'Không có thông tin về nội dung bao gồm',
+						}}
+					></p>
 				</CardContent>
 			</Card>
 
@@ -42,9 +48,12 @@ const CourseOverview = ({ course }: any) => {
 					<CardTitle className='text-lg text-emerald-800'>Chi tiết nội dung</CardTitle>
 				</CardHeader>
 				<CardContent>
-					<p className='whitespace-pre-line text-gray-700'>
-						{course.courseContent || 'Không có thông tin chi tiết nội dung'}
-					</p>
+					<p
+						className='whitespace-pre-line text-gray-700'
+						dangerouslySetInnerHTML={{
+							__html: course.courseContent || 'Không có thông tin chi tiết nội dung',
+						}}
+					></p>
 				</CardContent>
 			</Card>
 		</>

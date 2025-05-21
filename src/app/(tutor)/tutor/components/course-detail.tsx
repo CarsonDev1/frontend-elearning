@@ -92,12 +92,7 @@ const CourseDetailDialog = ({
 											)}
 
 											{onSubmit && (
-												<Button
-													variant='superOutline'
-													className='bg-emerald-500 text-white border-emerald-600 hover:bg-emerald-600'
-													disabled={isSubmitting}
-													onClick={onSubmit}
-												>
+												<Button variant='secondary' disabled={isSubmitting} onClick={onSubmit}>
 													{isSubmitting ? (
 														<>
 															<Loader2 className='mr-2 h-4 w-4 animate-spin' />

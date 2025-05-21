@@ -8,13 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Eye, Clock, BookOpen, Loader2, ChevronLeft, ChevronRight, PenLine, Play, Trash2, Plus } from 'lucide-react';
-import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useRouter } from 'next/navigation';
 import CourseDetailDialog from '@/app/(tutor)/tutor/components/course-detail';
 import ConfirmDeleteDialog from '@/app/(tutor)/tutor/components/confirm-delete';
 import ResourceDetailDialog from '@/app/(tutor)/tutor/components/resource-detail';
 import ExerciseDetailDialog from '@/app/(tutor)/tutor/components/exercise-detail';
+import { toast } from 'sonner';
 
 // Import dialog components
 
@@ -122,7 +122,7 @@ const CoursesTutor = () => {
 	};
 
 	const handleEditCourse = (courseId: any) => {
-		router.push(`/tutor/courses/edit/${courseId}`);
+		router.push(`/tutor/course/edit/${courseId}`);
 	};
 
 	const handleCreateCourse = () => {

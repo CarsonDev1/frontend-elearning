@@ -19,7 +19,12 @@ const CourseOverview = ({ course }: any) => {
 				<Card>
 					<CardContent className='pt-6'>
 						<h3 className='text-lg font-semibold text-emerald-800 mb-2'>Tổng quan khóa học</h3>
-						<div className='text-gray-700 whitespace-pre-line'>{course.courseOverview}</div>
+						<p
+							className='whitespace-pre-line text-gray-700'
+							dangerouslySetInnerHTML={{
+								__html: course.courseOverview || 'Không có tổng quan',
+							}}
+						></p>
 					</CardContent>
 				</Card>
 			)}
@@ -29,7 +34,12 @@ const CourseOverview = ({ course }: any) => {
 				<Card>
 					<CardContent className='pt-6'>
 						<h3 className='text-lg font-semibold text-emerald-800 mb-2'>Nội dung khóa học</h3>
-						<div className='text-gray-700 whitespace-pre-line'>{course.courseContent}</div>
+						<p
+							className='whitespace-pre-line text-gray-700'
+							dangerouslySetInnerHTML={{
+								__html: course.includesDescription || 'Không có thông tin về nội dung bao gồm',
+							}}
+						></p>
 					</CardContent>
 				</Card>
 			)}
@@ -39,7 +49,12 @@ const CourseOverview = ({ course }: any) => {
 				<Card>
 					<CardContent className='pt-6'>
 						<h3 className='text-lg font-semibold text-emerald-800 mb-2'>Khóa học bao gồm</h3>
-						<div className='text-gray-700 whitespace-pre-line'>{course.includesDescription}</div>
+						<p
+							className='whitespace-pre-line text-gray-700'
+							dangerouslySetInnerHTML={{
+								__html: course.includesDescription || 'Không có thông tin về nội dung bao gồm',
+							}}
+						></p>
 					</CardContent>
 				</Card>
 			)}

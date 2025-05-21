@@ -157,7 +157,7 @@ const PreviewTab: React.FC<PreviewTabProps> = ({
 						type='button'
 						onClick={() => setIsSubmitConfirmOpen(true)}
 						disabled={createCourseMutation.isPending}
-						className='bg-emerald-600 hover:bg-emerald-700'
+						variant='primary'
 					>
 						<Send className='mr-2 h-4 w-4' />
 						Gửi phê duyệt

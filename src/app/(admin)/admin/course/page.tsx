@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Eye, Clock, BookOpen, CheckCircle2, XCircle, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Eye, Clock, BookOpen, CheckCircle2, XCircle, Loader2, ChevronLeft, ChevronRight, Undo2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import CourseDetailDialog from '@/app/(admin)/admin/components/course-detail';
@@ -15,6 +15,7 @@ import RejectCourseDialog from '@/app/(admin)/admin/components/reject-course';
 import ConfirmDeleteDialog from '@/app/(admin)/admin/components/confirm-delete';
 import ResourceDetailDialog from '@/app/(admin)/admin/components/resource-detail';
 import ExerciseDetailDialog from '@/app/(admin)/admin/components/exercise-detail';
+import ConfirmWithdrawDialog from '@/app/(admin)/admin/components/course-withdraw';
 
 const CoursesAdmin = () => {
 	const queryClient = useQueryClient();
@@ -32,6 +33,7 @@ const CoursesAdmin = () => {
 	const [selectedExercise, setSelectedExercise] = useState(null);
 	const [isResourceDialogOpen, setIsResourceDialogOpen] = useState(false);
 	const [isExerciseDialogOpen, setIsExerciseDialogOpen] = useState(false);
+	const [isWithdrawAlertOpen, setIsWithdrawAlertOpen] = useState(false);
 
 	// Query for all courses
 	const { data: allCoursesData, isLoading: isLoadingAll } = useQuery({
@@ -82,6 +84,37 @@ const CoursesAdmin = () => {
 			setLoadingAction(null);
 		},
 	});
+
+	const withdrawMutation = useMutation({
+		mutationFn: (courseId: any) => CourseService.withdrawCourse(courseId, 'DRAFT'),
+		onMutate: (courseId) => {
+			setLoadingCourseId(courseId);
+			setLoadingAction('withdraw');
+		},
+		onSuccess: () => {
+			toast.success('Rút lại khóa học thành công!', {
+				style: { background: '#58CC02', color: 'white' },
+				icon: <CheckCircle2 className='text-white' />,
+			});
+			queryClient.invalidateQueries({ queryKey: ['courses', 'all'] });
+			queryClient.invalidateQueries({ queryKey: ['courses', 'pending'] });
+			setLoadingCourseId(null);
+			setLoadingAction(null);
+			handleCloseDialog();
+			setIsWithdrawAlertOpen(false);
+		},
+		onError: () => {
+			toast.error('Rút lại khóa học thất bại.', {
+				style: { background: '#FF4B4B', color: 'white' },
+			});
+			setLoadingCourseId(null);
+			setLoadingAction(null);
+		},
+	});
+
+	const handleWithdrawCourse = () => {
+		withdrawMutation.mutate(displayCourse.id);
+	};
 
 	const rejectMutation = useMutation({
 		mutationFn: (payload: any) => CourseService.rejectCourse(payload.courseId, payload.feedback),
@@ -322,6 +355,7 @@ const CoursesAdmin = () => {
 							coursesData?.content.map((course: any) => {
 								const isPending = course.status === 'PENDING_APPROVAL';
 								const isLoading = loadingCourseId === course.id;
+								const isWithdrawing = course.status === 'APPROVED';
 								return (
 									<TableRow
 										key={course.id}
@@ -442,6 +476,31 @@ const CoursesAdmin = () => {
 														</Button>
 													</>
 												)}
+												{course.status === 'APPROVED' && (
+													<Button
+														variant='superOutline'
+														size='sm'
+														className='bg-yellow-50 text-yellow-600 border-yellow-200 hover:bg-yellow-100'
+														disabled={isLoading && loadingAction === 'withdraw'}
+														onClick={(e) => {
+															e.stopPropagation();
+															setSelectedCourse(course);
+															setIsWithdrawAlertOpen(true);
+														}}
+													>
+														{isLoading && loadingAction === 'withdraw' ? (
+															<>
+																<Loader2 className='mr-2 h-4 w-4 animate-spin' />
+																Đang xử lý
+															</>
+														) : (
+															<>
+																<Undo2 className='mr-1 h-4 w-4' />
+																Rút lại
+															</>
+														)}
+													</Button>
+												)}
 											</div>
 										</TableCell>
 									</TableRow>
@@ -508,6 +567,8 @@ const CoursesAdmin = () => {
 				onApprove={() => approveMutation.mutate(displayCourse?.id)}
 				onReject={() => setIsRejectDialogOpen(true)}
 				onDelete={() => setIsDeleteAlertOpen(true)}
+				onWithdraw={() => setIsWithdrawAlertOpen(true)}
+				isWithdrawing={loadingCourseId === displayCourse?.id && loadingAction === 'withdraw'}
 				isApproving={loadingCourseId === displayCourse?.id && loadingAction === 'approve'}
 				isRejecting={loadingCourseId === displayCourse?.id && loadingAction === 'reject'}
 				isDeleting={loadingCourseId === displayCourse?.id && loadingAction === 'delete'}
@@ -516,6 +577,14 @@ const CoursesAdmin = () => {
 				formatDuration={formatDuration}
 				formatPrice={formatPrice}
 				getStatusBadge={getStatusBadge}
+			/>
+
+			<ConfirmWithdrawDialog
+				isOpen={isWithdrawAlertOpen}
+				onClose={() => setIsWithdrawAlertOpen(false)}
+				onConfirm={handleWithdrawCourse}
+				courseTitle={displayCourse?.title}
+				isLoading={loadingCourseId === displayCourse?.id && loadingAction === 'withdraw'}
 			/>
 
 			<RejectCourseDialog

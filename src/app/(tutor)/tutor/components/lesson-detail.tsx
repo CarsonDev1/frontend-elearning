@@ -92,7 +92,7 @@ const LessonDetail = ({ lesson, onResourceClick, onExerciseClick }: any) => {
 
 			{/* Lesson content */}
 			{lesson.content && (
-				<div className='bg-gray-50 p-3 rounded-md'>
+				<div className='bg-gray-100 p-3 rounded-md'>
 					<h5 className='text-sm font-medium text-gray-700 mb-2'>Nội dung bài học:</h5>
 					<p className='text-sm text-gray-600 whitespace-pre-line'>{lesson.content}</p>
 				</div>
@@ -100,7 +100,7 @@ const LessonDetail = ({ lesson, onResourceClick, onExerciseClick }: any) => {
 
 			{/* Lesson Video URL */}
 			{lesson.videoUrl && (
-				<div className='bg-gray-50 p-3 rounded-md'>
+				<div className='bg-gray-100 p-3 rounded-md'>
 					<h5 className='text-sm font-medium text-gray-700 mb-2'>Video bài học:</h5>
 					<a
 						href={lesson.videoUrl}

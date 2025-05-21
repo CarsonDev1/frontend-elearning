@@ -103,7 +103,7 @@ const ModulesList = ({
 											<CollapsibleContent>
 												<div className='px-4 pb-4 pt-0'>
 													{lesson.description && (
-														<div className='mb-4 text-sm text-gray-700 bg-gray-50 p-3 rounded-md'>
+														<div className='mb-4 text-sm text-gray-700 bg-gray-100 p-3 rounded-md'>
 															{lesson.description}
 														</div>
 													)}
@@ -115,75 +115,6 @@ const ModulesList = ({
 															onResourceClick={onResourceClick}
 															onExerciseClick={onExerciseClick}
 														/>
-													)}
-
-													{/* Resources */}
-													{lesson.resources && lesson.resources.length > 0 && (
-														<div className='mb-4'>
-															<h5 className='text-sm font-medium text-gray-600 mb-2'>
-																Tài liệu:
-															</h5>
-															<ul className='space-y-2'>
-																{lesson.resources.map((resource: any) => (
-																	<li key={resource.id}>
-																		<Button
-																			variant='superOutline'
-																			size='sm'
-																			className='w-full justify-between bg-blue-50 border-blue-200 text-blue-700'
-																			onClick={() => onResourceClick(resource)}
-																		>
-																			<div className='flex items-center'>
-																				<FileText className='h-4 w-4 mr-2' />
-																				<span className='font-normal'>
-																					{resource.title}
-																				</span>
-																			</div>
-																			<Badge className='bg-blue-100 text-blue-800 ml-2 font-normal'>
-																				{resource.fileType}
-																			</Badge>
-																		</Button>
-																	</li>
-																))}
-															</ul>
-														</div>
-													)}
-
-													{/* Exercises */}
-													{lesson.exercises && lesson.exercises.length > 0 && (
-														<div>
-															<h5 className='text-sm font-medium text-gray-600 mb-2'>
-																Bài tập:
-															</h5>
-															<ul className='space-y-2'>
-																{lesson.exercises.map((exercise: any) => (
-																	<li key={exercise.id}>
-																		<Button
-																			variant='superOutline'
-																			size='sm'
-																			className='w-full justify-between bg-purple-50 border-purple-200 text-purple-700'
-																			onClick={() => onExerciseClick(exercise)}
-																		>
-																			<div className='flex items-center'>
-																				<FileText className='h-4 w-4 mr-2' />
-																				<span className='font-normal'>
-																					{exercise.title}
-																				</span>
-																			</div>
-																			<Badge className='bg-purple-100 text-purple-800 ml-2 font-normal'>
-																				{exercise.type === 'MULTIPLE_CHOICE'
-																					? 'Trắc nghiệm'
-																					: exercise.type ===
-																					  'FILL_IN_THE_BLANK'
-																					? 'Điền vào chỗ trống'
-																					: exercise.type === 'MATCHING'
-																					? 'Ghép cặp'
-																					: exercise.type}
-																			</Badge>
-																		</Button>
-																	</li>
-																))}
-															</ul>
-														</div>
 													)}
 												</div>
 											</CollapsibleContent>

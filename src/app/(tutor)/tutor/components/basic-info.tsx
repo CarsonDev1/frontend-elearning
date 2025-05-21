@@ -35,6 +35,20 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
 	router,
 	levels,
 }) => {
+	// Sắp xếp levels theo thứ tự N1, N2, N3, N4, N5,...
+	const sortedLevels = React.useMemo(() => {
+		if (!levels) return [];
+
+		return [...levels].sort((a, b) => {
+			// Giả sử name có dạng "N1", "N2", etc.
+			// Trích xuất số từ tên level
+			const numA = parseInt(a.name.replace(/\D/g, ''));
+			const numB = parseInt(b.name.replace(/\D/g, ''));
+
+			return numA - numB;
+		});
+	}, [levels]);
+
 	// Handle thumbnail upload
 	const handleThumbnailUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
 		const file = event.target.files?.[0];
@@ -145,7 +159,7 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
 									</SelectTrigger>
 								</FormControl>
 								<SelectContent>
-									{levels?.map((level) => (
+									{sortedLevels.map((level) => (
 										<SelectItem key={level.id} value={level.id.toString()}>
 											{level.name}
 										</SelectItem>

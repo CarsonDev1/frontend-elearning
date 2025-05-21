@@ -41,7 +41,9 @@ const Sidebar: React.FC<SidebarProps> = ({ sidebarOpen, setSidebarOpen, sidebarI
 						<li key={item.id}>
 							<Button
 								variant={activeTab === item.id ? 'sidebarOutline' : 'ghost'}
-								className={`w-full flex items-center justify-start gap-3 ${
+								className={`w-full flex items-center ${
+									sidebarOpen ? 'justify-start' : 'justify-center'
+								}  gap-3 ${
 									activeTab === item.id
 										? 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100'
 										: 'text-gray-700 hover:bg-gray-100'

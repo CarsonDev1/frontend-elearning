@@ -107,7 +107,7 @@ export function AppSidebar() {
 		<Sidebar>
 			<SidebarContent>
 				<SidebarGroup>
-					<SidebarGroupLabel className='p-10 text-primary font-bold text-2xl'>JPElearning</SidebarGroupLabel>
+					<SidebarGroupLabel className='p-10 text-primary font-bold text-2xl'>JPE</SidebarGroupLabel>
 					<SidebarGroupContent>
 						<SidebarMenu className='space-y-2'>
 							{items.map((item) => {

@@ -88,7 +88,7 @@ const TutorCourseService = {
    * @param courseId ID of the course
    */
   getCourseById: async (courseId: number): Promise<Course> => {
-    const response = await api.get<Course>(`/courses/${courseId}`);
+    const response = await api.get<Course>(`/tutor/courses/${courseId}`);
     return response.data;
   },
 

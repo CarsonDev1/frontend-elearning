@@ -51,7 +51,7 @@ const ResourceDetailDialog = ({ resource, isOpen, onClose }: any) => {
 					</DialogTitle>
 					<DialogDescription>Chi tiết tài liệu</DialogDescription>
 				</DialogHeader>
-				<div className='grid gap-4 py-4'>
+				<div className='w-full flex flex-col gap-2'>
 					<div className='bg-blue-50 p-4 rounded-lg'>
 						<h4 className='font-medium mb-2 text-blue-800'>Mô tả</h4>
 						<p className='text-sm text-blue-700 whitespace-pre-line'>
@@ -71,16 +71,18 @@ const ResourceDetailDialog = ({ resource, isOpen, onClose }: any) => {
 					</div>
 
 					{resource.fileUrl && (
-						<div className='bg-gray-50 p-4 rounded-lg'>
+						<div className='bg-gray-50 p-4 rounded-lg w-full'>
 							<h4 className='font-medium mb-2'>Link tài liệu</h4>
-							<div className='flex items-center'>
+							<div className='flex items-center justify-between'>
 								<a
 									href={resource.fileUrl}
 									target='_blank'
 									rel='noopener noreferrer'
-									className='text-blue-600 hover:underline mr-2 truncate flex-1'
+									className='text-blue-600 hover:underline mr-2'
 								>
-									{resource.fileUrl}
+									{resource.fileUrl.length > 50
+										? resource.fileUrl.slice(0, 47) + '...'
+										: resource.fileUrl}
 								</a>
 								<Button
 									variant='superOutline'

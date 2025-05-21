@@ -9,6 +9,21 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export const formatDuration = (minutes: number, dictionary: any) => {
+  if (minutes < 60) {
+    return `${minutes} ${dictionary.courses.minutes}`;
+  }
+
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+
+  if (remainingMinutes === 0) {
+    return `${hours} ${dictionary.courses.hours}`;
+  }
+
+  return `${hours} ${dictionary.courses.hours} ${remainingMinutes} ${dictionary.courses.minutes}`;
+};
+
 /**
  * Formats a number as currency
  */

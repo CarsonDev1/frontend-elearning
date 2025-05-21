@@ -323,7 +323,7 @@ const CreateCourse: React.FC = () => {
 						<Button
 							variant='ghost'
 							size='sm'
-							onClick={() => router.push('/tutor/courses')}
+							onClick={() => router.push('/tutor/course')}
 							className='text-gray-600 hover:text-emerald-600'
 						>
 							<ArrowLeft className='h-4 w-4 mr-2' />
@@ -438,7 +438,6 @@ const CreateCourse: React.FC = () => {
 								setIsSubmitConfirmOpen(false);
 								methods.handleSubmit(onSubmit)();
 							}}
-							className='bg-emerald-600 hover:bg-emerald-700'
 						>
 							Xác nhận
 						</AlertDialogAction>

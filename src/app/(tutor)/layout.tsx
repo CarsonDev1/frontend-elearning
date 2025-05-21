@@ -3,6 +3,7 @@ import '../globals.css';
 import { AppBreadcrumb } from '@/components/app-breadcrumb';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/app/(tutor)/tutor/components/app-sidebar';
+import { Toaster } from 'sonner';
 
 export const metadata = {
 	title: 'Next.js',
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 								<AppBreadcrumb />
 							</div>
 							{children}
+							<Toaster />
 						</main>
 					</SidebarProvider>
 				</AppProviders>

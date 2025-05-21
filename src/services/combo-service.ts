@@ -79,6 +79,18 @@ const ComboService = {
     return response.data;
   },
 
+  getPublicCombo: async (
+    page = 0,
+    size = 10,
+    sortBy = 'createdAt',
+    direction = 'desc'
+  ): Promise<PaginationResponse<Combo>> => {
+    const response = await api.get<PaginationResponse<Combo>>(
+      `/combos?page=${page}&size=${size}&sortBy=${sortBy}&direction=${direction}`
+    );
+    return response.data;
+  },
+
   getComboById: async (comboId: number): Promise<Combo> => {
     const response = await api.get<Combo>(`/admin/combos/${comboId}`);
     return response.data;

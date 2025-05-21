@@ -2,7 +2,7 @@ import LoginForm from '@/app/(auth)/components/login-form';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-	title: 'Đăng nhập | Tutor Bee',
+	title: 'Đăng nhập | JPE',
 	description: 'Đăng nhập vào tài khoản của bạn',
 };
 
