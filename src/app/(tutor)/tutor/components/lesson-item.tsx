@@ -128,19 +128,7 @@ const LessonItem = ({ form, moduleIndex, lessonIndex, currentUploadTasks, setCur
 			title: '',
 			description: '',
 			type: 'MULTIPLE_CHOICE',
-			questions: [
-				{
-					content: '',
-					hint: '',
-					correctAnswer: '',
-					answerExplanation: '',
-					points: 1,
-					options: [
-						{ content: '', correct: true },
-						{ content: '', correct: false },
-					],
-				},
-			],
+			questions: [], // Start with empty questions array
 		});
 	};
 

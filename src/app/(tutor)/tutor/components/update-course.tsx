@@ -35,76 +35,11 @@ import ModulesTab from '@/app/(tutor)/tutor/components/module-tab';
 import PricingTab from '@/app/(tutor)/tutor/components/pricing';
 import PreviewTab from '@/app/(tutor)/tutor/components/privew-tab';
 
-// Define the schema for form validation (same as CreateCourse)
-const questionOptionSchema = z.object({
-	content: z.string().min(1, 'Nội dung lựa chọn là bắt buộc'),
-	correct: z.boolean().default(false),
-	id: z.number().optional(),
-});
-
-const questionSchema = z.object({
-	content: z.string().min(1, 'Nội dung câu hỏi là bắt buộc'),
-	hint: z.string().optional(),
-	correctAnswer: z.string().optional(),
-	answerExplanation: z.string().min(1, 'Giải thích đáp án là bắt buộc'),
-	points: z.number().min(1, 'Điểm số phải lớn hơn 0').default(1),
-	options: z.array(questionOptionSchema).min(2, 'Phải có ít nhất 2 lựa chọn'),
-	id: z.number().optional(),
-});
-
-const exerciseSchema = z.object({
-	title: z.string().min(1, 'Tiêu đề bài tập là bắt buộc'),
-	description: z.string().min(1, 'Mô tả bài tập là bắt buộc'),
-	type: z.enum(['MULTIPLE_CHOICE', 'FILL_IN_THE_BLANK', 'MATCHING']),
-	questions: z.array(questionSchema).min(1, 'Phải có ít nhất 1 câu hỏi'),
-	id: z.number().optional(),
-});
-
-const resourceSchema = z.object({
-	title: z.string().min(1, 'Tiêu đề tài liệu là bắt buộc'),
-	description: z.string().min(1, 'Mô tả tài liệu là bắt buộc'),
-	fileUrl: z.string().min(1, 'URL tài liệu là bắt buộc'),
-	fileType: z.string().min(1, 'Loại tài liệu là bắt buộc'),
-	id: z.number().optional(),
-});
-
-const lessonSchema = z.object({
-	title: z.string().min(1, 'Tiêu đề bài học là bắt buộc'),
-	description: z.string().min(1, 'Mô tả bài học là bắt buộc'),
-	videoUrl: z.string().min(1, 'Video bài học là bắt buộc'),
-	durationInMinutes: z.number().min(1, 'Thời lượng phải lớn hơn 0'),
-	content: z.string().min(1, 'Nội dung bài học là bắt buộc'),
-	position: z.number().min(0),
-	resources: z.array(resourceSchema),
-	exercises: z.array(exerciseSchema),
-	id: z.number().optional(),
-});
-
-const moduleSchema = z.object({
-	title: z.string().min(1, 'Tiêu đề module là bắt buộc'),
-	durationInMinutes: z.number().optional(),
-	position: z.number().min(0),
-	lessons: z.array(lessonSchema).min(1, 'Module phải có ít nhất một bài học'),
-	id: z.number().optional(),
-});
-
-const courseFormSchema = z.object({
-	title: z.string().min(3, 'Tiêu đề khóa học phải có ít nhất 3 kí tự'),
-	description: z.string().min(10, 'Mô tả khóa học phải có ít nhất 10 kí tự'),
-	levelId: z.number({
-		required_error: 'Vui lòng chọn cấp độ khóa học',
-		invalid_type_error: 'Cấp độ khóa học là bắt buộc',
-	}),
-	courseOverview: z.string().min(10, 'Tổng quan khóa học phải có ít nhất 10 kí tự'),
-	courseContent: z.string().min(10, 'Nội dung khóa học phải có ít nhất 10 kí tự'),
-	price: z.number().min(0, 'Giá khóa học không được âm'),
-	thumbnailUrl: z.string().min(1, 'Hình thu nhỏ khóa học là bắt buộc'),
-	includesDescription: z.string().min(10, 'Mô tả nội dung bao gồm phải có ít nhất 10 kí tự'),
-	modules: z.array(moduleSchema).min(1, 'Khóa học phải có ít nhất một module'),
-	id: z.number().optional(),
-});
-
-type CourseFormValues = z.infer<typeof courseFormSchema>;
+// Import shared schemas and types for update
+import {
+	updateCourseFormSchema,
+	UpdateCourseFormValues
+} from '@/schemas/course-schema';
 
 const UpdateCourse: React.FC = () => {
 	const router = useRouter();
@@ -134,7 +69,7 @@ const UpdateCourse: React.FC = () => {
 
 	// Form setup with React Hook Form and Zod validation
 	const methods = useForm<any>({
-		resolver: zodResolver(courseFormSchema),
+		resolver: zodResolver(updateCourseFormSchema),
 		defaultValues: {
 			title: '',
 			description: '',

@@ -35,139 +35,18 @@ import ModulesTab from '@/app/(tutor)/tutor/components/module-tab';
 import PricingTab from '@/app/(tutor)/tutor/components/pricing';
 import PreviewTab from '@/app/(tutor)/tutor/components/privew-tab';
 
-// Define the schema for form validation
-// Define a QuestionOption schema
-const questionOptionSchema = z.object({
-	content: z.string().min(1, 'Nội dung lựa chọn là bắt buộc'),
-	correct: z.boolean().default(false),
-});
-
-// Define a Question schema
-const questionSchema = z.object({
-	content: z.string().min(1, 'Nội dung câu hỏi là bắt buộc'),
-	hint: z.string().optional(),
-	correctAnswer: z.string().optional(),
-	answerExplanation: z.string().min(1, 'Giải thích đáp án là bắt buộc'),
-	points: z.number().min(1, 'Điểm số phải lớn hơn 0').default(1),
-	options: z.array(questionOptionSchema).min(2, 'Phải có ít nhất 2 lựa chọn'),
-});
-
-// Define an Exercise schema
-const exerciseSchema = z.object({
-	title: z.string().min(1, 'Tiêu đề bài tập là bắt buộc'),
-	description: z.string().min(1, 'Mô tả bài tập là bắt buộc'),
-	type: z.enum(['MULTIPLE_CHOICE', 'FILL_IN_THE_BLANK', 'MATCHING']),
-	questions: z.array(questionSchema).min(1, 'Phải có ít nhất 1 câu hỏi'),
-});
-
-// Define a Resource schema
-const resourceSchema = z.object({
-	title: z.string().min(1, 'Tiêu đề tài liệu là bắt buộc'),
-	description: z.string().min(1, 'Mô tả tài liệu là bắt buộc'),
-	fileUrl: z.string().min(1, 'URL tài liệu là bắt buộc'),
-	fileType: z.string().min(1, 'Loại tài liệu là bắt buộc'),
-});
-
-// Define a Lesson schema
-const lessonSchema = z.object({
-	title: z.string().min(1, 'Tiêu đề bài học là bắt buộc'),
-	description: z.string().min(1, 'Mô tả bài học là bắt buộc'),
-	videoUrl: z.string().min(1, 'Video bài học là bắt buộc'),
-	durationInMinutes: z.number().min(1, 'Thời lượng phải lớn hơn 0'),
-	content: z.string().min(1, 'Nội dung bài học là bắt buộc'),
-	position: z.number().min(0),
-	resources: z.array(resourceSchema),
-	exercises: z.array(exerciseSchema),
-});
-
-// Define a Module schema
-const moduleSchema = z.object({
-	title: z.string().min(1, 'Tiêu đề module là bắt buộc'),
-	durationInMinutes: z.number().optional(),
-	position: z.number().min(0),
-	lessons: z.array(lessonSchema).min(1, 'Module phải có ít nhất một bài học'),
-});
-
-// Define the course form schema
-const courseFormSchema = z.object({
-	title: z.string().min(3, 'Tiêu đề khóa học phải có ít nhất 3 kí tự'),
-	description: z.string().min(10, 'Mô tả khóa học phải có ít nhất 10 kí tự'),
-	levelId: z.number({
-		required_error: 'Vui lòng chọn cấp độ khóa học',
-		invalid_type_error: 'Cấp độ khóa học là bắt buộc',
-	}),
-	courseOverview: z.string().min(10, 'Tổng quan khóa học phải có ít nhất 10 kí tự'),
-	courseContent: z.string().min(10, 'Nội dung khóa học phải có ít nhất 10 kí tự'),
-	price: z.number().min(0, 'Giá khóa học không được âm'),
-	thumbnailUrl: z.string().min(1, 'Hình thu nhỏ khóa học là bắt buộc'),
-	includesDescription: z.string().min(10, 'Mô tả nội dung bao gồm phải có ít nhất 10 kí tự'),
-	modules: z.array(moduleSchema).min(1, 'Khóa học phải có ít nhất một module'),
-});
-
-// Extract type from Zod schema
-type CourseFormValues = z.infer<typeof courseFormSchema>;
-
-// Define Level interface
-interface Level {
-	id: number;
-	name: string;
-	description?: string;
-}
-
-// For compatibility with return type of API
-interface CreateCourseResponse {
-	id: number;
-	title: string;
-	description: string;
-	levelId: number;
-	level?: Level;
-	courseOverview: string;
-	courseContent: string;
-	price: number;
-	thumbnailUrl: string;
-	includesDescription: string;
-	modules: Array<{
-		title: string;
-		position: number;
-		durationInMinutes: number;
-		lessons: Array<{
-			title: string;
-			description: string;
-			videoUrl: string;
-			durationInMinutes: number;
-			content: string;
-			position: number;
-			resources: Array<{
-				title: string;
-				description: string;
-				fileUrl: string;
-				fileType: string;
-			}>;
-			exercises: Array<{
-				title: string;
-				description: string;
-				type: 'MULTIPLE_CHOICE' | 'FILL_IN_THE_BLANK' | 'MATCHING';
-				questions: Array<{
-					content: string;
-					hint?: string;
-					correctAnswer?: string;
-					answerExplanation: string;
-					points: number;
-					options: Array<{
-						content: string;
-						correct: boolean;
-					}>;
-				}>;
-			}>;
-		}>;
-	}>;
-	status?: 'DRAFT' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED';
-	createdAt?: string;
-	updatedAt?: string;
-}
+// Import shared schemas and types
+import {
+	courseFormSchema,
+	CourseFormValues,
+	CreateCourseResponse,
+	Level
+} from '@/schemas/course-schema';
+import { useAuth } from '@/context/AuthContext';
 
 const CreateCourse: React.FC = () => {
 	const router = useRouter();
+	const { user } = useAuth();
 	const [activeTab, setActiveTab] = useState<string>('basic-info');
 	const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
 	const [isSubmitConfirmOpen, setIsSubmitConfirmOpen] = useState<boolean>(false);
@@ -218,6 +97,8 @@ const CreateCourse: React.FC = () => {
 	// Define the mutation for creating a course
 	const createCourseMutation = useMutation<any>({
 		mutationFn: (data: any) => {
+			console.log('Mutation function called with data:', data);
+
 			// Process data to ensure types match API requirements
 			const preparedData = {
 				...data,
@@ -228,21 +109,23 @@ const CreateCourse: React.FC = () => {
 						...lesson,
 						exercises: lesson.exercises.map((exercise: any) => ({
 							...exercise,
-							questions: exercise.questions.map((question: any) => ({
+							questions: exercise.questions?.map((question: any) => ({
 								...question,
-								options: question.options.map((option: any) => ({
+								options: question.options?.map((option: any) => ({
 									...option,
 									correct: option.correct === undefined ? false : option.correct, // Ensure correct is always boolean
 								})),
-							})),
+							})) || [],
 						})),
 					})),
 				})),
 			};
 
+			console.log('Final prepared data for API:', preparedData);
 			return TutorCourseService.createCourse(preparedData);
 		},
 		onSuccess: (response) => {
+			console.log('Course creation successful:', response);
 			toast.success('Khóa học đã được tạo thành công!', {
 				style: { background: '#58CC02', color: 'white' },
 			});
@@ -250,6 +133,7 @@ const CreateCourse: React.FC = () => {
 			router.push('/tutor/course');
 		},
 		onError: (error) => {
+			console.error('Course creation failed:', error);
 			toast.error('Tạo khóa học thất bại. Vui lòng thử lại.', {
 				style: { background: '#FF4B4B', color: 'white' },
 			});
@@ -259,6 +143,48 @@ const CreateCourse: React.FC = () => {
 
 	// Submit handler
 	const onSubmit: any = (data: any) => {
+		console.log('Form submitted with data:', data);
+		console.log('Current token:', document.cookie);
+		console.log('Current user:', user);
+
+		// Clean up data: remove empty questions from speech exercises and filter invalid questions
+		data.modules.forEach((module: any) => {
+			module.lessons.forEach((lesson: any) => {
+				lesson.exercises = lesson.exercises.map((exercise: any) => {
+					const speechTypes = ['LISTENING', 'SPEAKING', 'SPEECH_RECOGNITION', 'PRONUNCIATION'];
+					if (speechTypes.includes(exercise.type)) {
+						// For speech exercises, remove questions entirely and ensure required fields
+						const cleanedExercise: any = {
+							title: exercise.title || '',
+							description: exercise.description || '',
+							type: exercise.type,
+							targetText: exercise.targetText || '',
+							targetAudioUrl: exercise.targetAudioUrl || '',
+							difficultyLevel: exercise.difficultyLevel || 'BEGINNER',
+							speechRecognitionLanguage: exercise.speechRecognitionLanguage || 'ja-JP',
+							minimumAccuracyScore: exercise.minimumAccuracyScore || 70,
+						};
+						// Only include id if it exists (for updates)
+						if (exercise.id) {
+							cleanedExercise.id = exercise.id;
+						}
+						return cleanedExercise;
+					} else {
+						// For traditional exercises, filter out empty questions
+						const validQuestions = (exercise.questions || []).filter((question: any) =>
+							question.content && question.content.trim().length > 0 &&
+							question.answerExplanation && question.answerExplanation.trim().length > 0
+						);
+
+						return {
+							...exercise,
+							questions: validQuestions
+						};
+					}
+				});
+			});
+		});
+
 		// Calculate total duration from all lessons
 		data.modules.forEach((module: any) => {
 			module.durationInMinutes = module.lessons.reduce(
@@ -266,6 +192,8 @@ const CreateCourse: React.FC = () => {
 				0
 			);
 		});
+
+		console.log('Prepared data before mutation:', data);
 
 		// Submit the course
 		createCourseMutation.mutate(data);
@@ -435,6 +363,9 @@ const CreateCourse: React.FC = () => {
 						<AlertDialogCancel>Hủy</AlertDialogCancel>
 						<AlertDialogAction
 							onClick={() => {
+								console.log('Submit button clicked');
+								console.log('Form errors:', methods.formState.errors);
+								console.log('Form values:', methods.getValues());
 								setIsSubmitConfirmOpen(false);
 								methods.handleSubmit(onSubmit)();
 							}}

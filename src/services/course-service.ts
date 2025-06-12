@@ -50,8 +50,16 @@ export interface Exercise {
   id: number;
   title: string;
   description: string;
-  type: 'MULTIPLE_CHOICE' | 'FILL_IN_THE_BLANK' | 'MATCHING';
-  questions: Question[];
+  type: 'MULTIPLE_CHOICE' | 'FILL_IN_THE_BLANK' | 'MATCHING' | 'LISTENING' | 'SPEAKING' | 'SPEECH_RECOGNITION' | 'PRONUNCIATION';
+  questions?: Question[];
+
+  // Speech exercise specific fields
+  targetText?: string;
+  targetAudioUrl?: string;
+  difficultyLevel?: 'BEGINNER' | 'ELEMENTARY' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT';
+  speechRecognitionLanguage?: string;
+  minimumAccuracyScore?: number;
+
   createdAt: string;
   updatedAt: string;
 }

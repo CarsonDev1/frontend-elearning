@@ -1,3 +1,6 @@
+// File: src/app/(tutor)/tutor/components/module-tab.tsx
+// CẬP NHẬT: Thêm hỗ trợ cho Speech Exercise trong default values
+
 import React, { useMemo } from 'react';
 import { useFieldArray } from 'react-hook-form';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -49,13 +52,13 @@ const ModulesTab = ({ form, navigateToTab, currentUploadTasks, setCurrentUploadT
 		});
 	};
 
-	// Add a new lesson to a module - without using hooks inside
+	// CẬP NHẬT: Add a new lesson to a module with Speech Exercise support
 	const addLesson = (moduleIndex: any) => {
 		// Get the current lessons
 		const lessons = form.getValues(`modules.${moduleIndex}.lessons`);
 		const newPosition = lessons.length;
 
-		// Manually update the form values
+		// Updated lesson template với exercise mặc định có hỗ trợ Speech
 		const newLesson = {
 			title: `Bài học ${newPosition + 1}`,
 			description: '',
@@ -64,7 +67,33 @@ const ModulesTab = ({ form, navigateToTab, currentUploadTasks, setCurrentUploadT
 			content: '',
 			position: newPosition,
 			resources: [],
-			exercises: [],
+			exercises: [
+				// Default traditional exercise
+				{
+					title: 'Bài tập trắc nghiệm',
+					description: 'Bài tập trắc nghiệm cơ bản',
+					type: 'MULTIPLE_CHOICE',
+					questions: [
+						{
+							content: '',
+							hint: '',
+							correctAnswer: '',
+							answerExplanation: '',
+							points: 1,
+							options: [
+								{ content: '', correct: true },
+								{ content: '', correct: false },
+							],
+						},
+					],
+					// Speech exercise fields (optional for traditional exercises)
+					targetText: '',
+					targetAudioUrl: '',
+					difficultyLevel: 'BEGINNER',
+					speechRecognitionLanguage: 'ja-JP',
+					minimumAccuracyScore: 70,
+				}
+			],
 		};
 
 		// Get current lessons
