@@ -42,8 +42,15 @@ export interface ResourceRequest {
 export interface ExerciseRequest {
   title: string;
   description: string;
-  type: 'MULTIPLE_CHOICE' | 'FILL_IN_THE_BLANK' | 'MATCHING';
-  questions: QuestionRequest[];
+  type: 'MULTIPLE_CHOICE' | 'FILL_IN_THE_BLANK' | 'MATCHING' | 'LISTENING' | 'SPEAKING' | 'SPEECH_RECOGNITION' | 'PRONUNCIATION';
+  questions?: QuestionRequest[];
+
+  // Speech exercise specific fields
+  targetText?: string;
+  targetAudioUrl?: string;
+  difficultyLevel?: 'BEGINNER' | 'ELEMENTARY' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT';
+  speechRecognitionLanguage?: string;
+  minimumAccuracyScore?: number;
 }
 
 export interface QuestionRequest {
