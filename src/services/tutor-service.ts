@@ -7,6 +7,7 @@ export interface Education {
   startDate: string;
   endDate?: string;
   description?: string;
+  id: any;
 }
 
 export interface Experience {
@@ -16,6 +17,7 @@ export interface Experience {
   endDate?: string;
   description?: string;
   current?: boolean;
+  id: any;
 }
 
 export interface UpdateTutorProfileRequest {
@@ -83,6 +85,10 @@ const TutorService = {
   // New method to update tutor profile by ID (for admin use)
   updateTutorProfile: async (tutorId: number, profileData: UpdateTutorProfileRequest): Promise<Tutor> => {
     const response = await api.put<Tutor>(`/users/${tutorId}/tutor-profile`, profileData);
+    return response.data;
+  },
+  updateProfile: async (profileData: UpdateTutorProfileRequest): Promise<Tutor> => {
+    const response = await api.put<Tutor>(`/users/me/tutor-profile`, profileData);
     return response.data;
   },
 };

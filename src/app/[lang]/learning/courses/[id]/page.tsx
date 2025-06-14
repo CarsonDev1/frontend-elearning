@@ -2,7 +2,7 @@
 import CourseService from '@/services/course-service';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
 	Play,
 	Check,
@@ -73,6 +73,32 @@ const LearningPage: React.FC = () => {
 	const lang = params.lang || 'vi';
 	const router = useRouter();
 	const queryClient = useQueryClient();
+
+	// Audio refs for sound effects
+	const correctAudioRef = useRef<HTMLAudioElement | null>(null);
+	const incorrectAudioRef = useRef<HTMLAudioElement | null>(null);
+
+	// Initialize audio objects
+	useEffect(() => {
+		correctAudioRef.current = new Audio('/images/correct.mp3');
+		incorrectAudioRef.current = new Audio('/images/incorrect.mp3');
+
+		// Set volume (optional)
+		if (correctAudioRef.current) correctAudioRef.current.volume = 0.7;
+		if (incorrectAudioRef.current) incorrectAudioRef.current.volume = 0.7;
+
+		// Cleanup function
+		return () => {
+			if (correctAudioRef.current) {
+				correctAudioRef.current.pause();
+				correctAudioRef.current = null;
+			}
+			if (incorrectAudioRef.current) {
+				incorrectAudioRef.current.pause();
+				incorrectAudioRef.current = null;
+			}
+		};
+	}, []);
 
 	// Fetch dictionary
 	const { data: dict, isLoading: isDictLoading } = useQuery({
@@ -255,12 +281,45 @@ const LearningPage: React.FC = () => {
 		return 0;
 	};
 
+	// Play audio feedback
+	const playAudioFeedback = (isCorrect: boolean) => {
+		try {
+			if (isCorrect && correctAudioRef.current) {
+				correctAudioRef.current.currentTime = 0; // Reset to start
+				correctAudioRef.current.play().catch((error) => {
+					console.log('Could not play correct audio:', error);
+				});
+			} else if (!isCorrect && incorrectAudioRef.current) {
+				incorrectAudioRef.current.currentTime = 0; // Reset to start
+				incorrectAudioRef.current.play().catch((error) => {
+					console.log('Could not play incorrect audio:', error);
+				});
+			}
+		} catch (error) {
+			console.log('Audio playback error:', error);
+		}
+	};
+
 	// Handle option selection in exercises
 	const handleOptionSelect = (questionId: number, optionId: number) => {
+		// Check if this question has already been answered
+		if (questionId in selectedOptions) {
+			return; // Don't allow changing answer
+		}
+
+		// Set the selected option
 		setSelectedOptions((prev) => ({
 			...prev,
 			[questionId]: optionId,
 		}));
+
+		// Check if the answer is correct and play appropriate sound
+		const isCorrect = isOptionCorrect(questionId, optionId);
+
+		// Small delay to ensure state is updated before playing sound
+		setTimeout(() => {
+			playAudioFeedback(isCorrect);
+		}, 100);
 	};
 
 	// Check if option is correct
@@ -473,20 +532,23 @@ const LearningPage: React.FC = () => {
 												const isCorrect = isOptionCorrect(currentQuestion.id, option.id);
 
 												let optionClass =
-													'border rounded-md p-3 cursor-pointer transition-colors';
+													'border rounded-md p-3 cursor-pointer transition-all duration-200';
 
 												if (!hasAnswered) {
 													optionClass += isSelected
-														? ' border-blue-500 bg-blue-50'
-														: ' hover:bg-gray-100';
+														? ' border-blue-500 bg-blue-50 transform scale-[1.02]'
+														: ' hover:bg-gray-100 hover:border-gray-300';
 												} else {
 													if (isSelected) {
 														optionClass += isCorrect
-															? ' border-green-500 bg-green-50 text-green-800'
-															: ' border-red-500 bg-red-50 text-red-800';
+															? ' border-green-500 bg-green-50 text-green-800 transform scale-[1.02]'
+															: ' border-red-500 bg-red-50 text-red-800 transform scale-[1.02]';
 													} else if (isCorrect) {
 														optionClass += ' border-green-500 bg-green-50 text-green-800';
+													} else {
+														optionClass += ' opacity-60';
 													}
+													optionClass += ' cursor-default';
 												}
 
 												return (
@@ -499,7 +561,17 @@ const LearningPage: React.FC = () => {
 															}
 														}}
 													>
-														{option.content}
+														<div className='flex items-center'>
+															{hasAnswered && isSelected && (
+																<span className='mr-2 text-lg'>
+																	{isCorrect ? '✅' : '❌'}
+																</span>
+															)}
+															{hasAnswered && !isSelected && isCorrect && (
+																<span className='mr-2 text-lg'>✅</span>
+															)}
+															<span className='flex-1'>{option.content}</span>
+														</div>
 													</div>
 												);
 											})}
@@ -508,7 +580,7 @@ const LearningPage: React.FC = () => {
 										{currentQuestion.id in selectedOptions && (
 											<div className='mt-4'>
 												<div
-													className={`p-3 rounded-md ${
+													className={`p-3 rounded-md transition-all duration-300 ${
 														isOptionCorrect(
 															currentQuestion.id,
 															selectedOptions[currentQuestion.id]
@@ -517,7 +589,15 @@ const LearningPage: React.FC = () => {
 															: 'bg-red-50 text-red-800 border border-red-200'
 													}`}
 												>
-													<p className='font-medium mb-1'>
+													<p className='font-medium mb-1 flex items-center'>
+														<span className='mr-2 text-lg'>
+															{isOptionCorrect(
+																currentQuestion.id,
+																selectedOptions[currentQuestion.id]
+															)
+																? '🎉'
+																: '💭'}
+														</span>
 														{isOptionCorrect(
 															currentQuestion.id,
 															selectedOptions[currentQuestion.id]
@@ -545,7 +625,7 @@ const LearningPage: React.FC = () => {
 														disabled={
 															currentQuestionIndex === 0 && currentExerciseIndex === 0
 														}
-														className='px-3 py-1 bg-gray-100 text-gray-800 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed'
+														className='px-3 py-1 bg-gray-100 text-gray-800 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
 													>
 														{dict.learning.previousQuestion}
 													</button>
@@ -570,7 +650,7 @@ const LearningPage: React.FC = () => {
 																currentExercise.questions.length - 1 &&
 															currentExerciseIndex === currentLesson.exercises.length - 1
 														}
-														className='px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed'
+														className='px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
 													>
 														{dict.learning.nextQuestion}
 													</button>

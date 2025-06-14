@@ -6,7 +6,20 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Plus, Trash2, Video, X, Loader2, Film, FileText, FileUp, HelpCircle, FileQuestion } from 'lucide-react';
+import {
+	Plus,
+	Trash2,
+	Video,
+	X,
+	Loader2,
+	Film,
+	FileText,
+	FileUp,
+	HelpCircle,
+	FileQuestion,
+	Link,
+	Upload,
+} from 'lucide-react';
 import FileUploadService from '@/services/file-upload-service';
 import { toast } from 'sonner';
 import ResourceItem from '@/app/(tutor)/tutor/components/resource-item';
@@ -34,6 +47,9 @@ const LessonItem = ({ form, moduleIndex, lessonIndex, currentUploadTasks, setCur
 	// Add upload progress state
 	const [uploadProgress, setUploadProgress] = useState(0);
 	const [isUploading, setIsUploading] = useState(false);
+
+	// Video input method state
+	const [videoInputMethod, setVideoInputMethod] = useState<'upload' | 'url'>('upload');
 
 	// Handle video upload for lessons
 	const handleVideoUpload = async (event: any) => {
@@ -110,6 +126,24 @@ const LessonItem = ({ form, moduleIndex, lessonIndex, currentUploadTasks, setCur
 				return newTasks;
 			});
 		}
+	};
+
+	// Validate video URL
+	const isValidVideoUrl = (url: string) => {
+		if (!url) return true; // Empty URL is valid (optional field)
+
+		// YouTube URL patterns
+		const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|embed\/)|youtu\.be\/)[\w-]+(&.*)?$/;
+		// Vimeo URL patterns
+		const vimeoRegex = /^(https?:\/\/)?(www\.)?vimeo\.com\/\d+(\?.*)?$/;
+		// Direct video file URLs
+		const directVideoRegex = /^https?:\/\/.*\.(mp4|webm|ogg|mov|avi)(\?.*)?$/i;
+		// Generic URL pattern
+		const genericUrlRegex = /^https?:\/\/[^\s/$.?#].[^\s]*$/i;
+
+		return (
+			youtubeRegex.test(url) || vimeoRegex.test(url) || directVideoRegex.test(url) || genericUrlRegex.test(url)
+		);
 	};
 
 	// Add a new resource to a lesson
@@ -215,24 +249,57 @@ const LessonItem = ({ form, moduleIndex, lessonIndex, currentUploadTasks, setCur
 								)}
 							/>
 
-							{/* Video Upload */}
+							{/* Video Upload/URL */}
 							<FormField
 								control={form.control}
 								name={`modules.${moduleIndex}.lessons.${lessonIndex}.videoUrl`}
 								render={({ field }) => (
 									<FormItem>
 										<FormLabel>Video bài học</FormLabel>
-										<div className='flex flex-col space-y-3'>
+										<div className='flex flex-col space-y-4'>
+											{/* Video Input Method Selector */}
+											<div className='flex gap-2 p-1 bg-gray-100 rounded-lg w-fit'>
+												<Button
+													type='button'
+													variant={videoInputMethod === 'upload' ? 'default' : 'ghost'}
+													size='sm'
+													onClick={() => setVideoInputMethod('upload')}
+													className='px-3 py-1.5 text-xs'
+												>
+													<Upload className='h-3 w-3 mr-1' />
+													Tải lên
+												</Button>
+												<Button
+													type='button'
+													variant={videoInputMethod === 'url' ? 'default' : 'ghost'}
+													size='sm'
+													onClick={() => setVideoInputMethod('url')}
+													className='px-3 py-1.5 text-xs'
+												>
+													<Link className='h-3 w-3 mr-1' />
+													URL
+												</Button>
+											</div>
+
 											<FormControl>
 												<Input type='hidden' {...field} />
 											</FormControl>
 
+											{/* Current Video Display */}
 											{field.value && (
-												<div className='flex items-center gap-2 p-2 bg-gray-50 rounded border border-gray-200'>
-													<Video className='h-5 w-5 text-emerald-600' />
-													<span className='text-sm text-gray-700 flex-1 truncate'>
-														{field.value.split('/').pop()}
-													</span>
+												<div className='flex items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200'>
+													<Video className='h-5 w-5 text-emerald-600 flex-shrink-0' />
+													<div className='flex-1 min-w-0'>
+														<p className='text-sm text-gray-700 truncate'>
+															{field.value.includes('youtube.com') ||
+															field.value.includes('youtu.be')
+																? 'YouTube Video'
+																: field.value.includes('vimeo.com')
+																? 'Vimeo Video'
+																: field.value.split('/').pop() || 'Video'}
+														</p>
+														<p className='text-xs text-gray-500 truncate'>{field.value}</p>
+													</div>
 													<Button
 														type='button'
 														variant='ghost'
@@ -246,66 +313,107 @@ const LessonItem = ({ form, moduleIndex, lessonIndex, currentUploadTasks, setCur
 																`modules.${moduleIndex}.lessons.${lessonIndex}.videoUrl`
 															);
 														}}
-														className='text-gray-500 hover:text-red-500 hover:bg-red-50 p-1 h-8 w-8'
+														className='text-gray-500 hover:text-red-500 hover:bg-red-50 p-1 h-8 w-8 flex-shrink-0'
 													>
 														<X className='h-4 w-4' />
 													</Button>
 												</div>
 											)}
 
-											<div>
-												<Button
-													type='button'
-													variant='superOutline'
-													onClick={() =>
-														document
-															.getElementById(
-																`video-upload-${moduleIndex}-${lessonIndex}`
-															)
-															?.click()
-													}
-													disabled={
-														isUploading ||
-														!!currentUploadTasks[`video-${moduleIndex}-${lessonIndex}`]
-													}
-													className='w-fit'
-												>
-													{isUploading ? (
-														<>
-															<Loader2 className='mr-2 h-4 w-4 animate-spin' />
-															Đang tải lên...
-														</>
-													) : (
-														<>
-															<Film className='mr-2 h-4 w-4' />
-															{field.value ? 'Thay đổi video' : 'Tải lên video'}
-														</>
-													)}
-												</Button>
-												<Input
-													id={`video-upload-${moduleIndex}-${lessonIndex}`}
-													type='file'
-													accept='video/*'
-													className='hidden'
-													onChange={handleVideoUpload}
-													disabled={
-														isUploading ||
-														!!currentUploadTasks[`video-${moduleIndex}-${lessonIndex}`]
-													}
-												/>
-												<p className='text-xs text-gray-500 mt-1'>
-													Định dạng: MP4, WEBM, OGG. Tối đa 100MB.
-												</p>
-											</div>
+											{/* Upload Method */}
+											{videoInputMethod === 'upload' && (
+												<div className='space-y-3'>
+													<Button
+														type='button'
+														variant='superOutline'
+														onClick={() =>
+															document
+																.getElementById(
+																	`video-upload-${moduleIndex}-${lessonIndex}`
+																)
+																?.click()
+														}
+														disabled={
+															isUploading ||
+															!!currentUploadTasks[`video-${moduleIndex}-${lessonIndex}`]
+														}
+														className='w-full border-dashed border-2 h-12 bg-gray-50 hover:bg-gray-100'
+													>
+														{isUploading ? (
+															<>
+																<Loader2 className='mr-2 h-4 w-4 animate-spin' />
+																Đang tải lên...
+															</>
+														) : (
+															<>
+																<Film className='mr-2 h-4 w-4' />
+																{field.value ? 'Thay đổi video' : 'Chọn video từ máy'}
+															</>
+														)}
+													</Button>
+													<Input
+														id={`video-upload-${moduleIndex}-${lessonIndex}`}
+														type='file'
+														accept='video/*'
+														className='hidden'
+														onChange={handleVideoUpload}
+														disabled={
+															isUploading ||
+															!!currentUploadTasks[`video-${moduleIndex}-${lessonIndex}`]
+														}
+													/>
+													<p className='text-xs text-gray-500 text-center'>
+														Định dạng: MP4, WEBM, OGG. Tối đa 100MB.
+													</p>
 
-											{/* Upload Progress Bar */}
-											{isUploading && (
-												<div className='w-full space-y-2'>
-													<div className='flex justify-between text-xs'>
-														<span>Đang tải lên...</span>
-														<span>{uploadProgress}%</span>
+													{/* Upload Progress Bar */}
+													{isUploading && (
+														<div className='w-full space-y-2'>
+															<div className='flex justify-between text-xs'>
+																<span>Đang tải lên...</span>
+																<span>{uploadProgress}%</span>
+															</div>
+															<Progress value={uploadProgress} className='h-2' />
+														</div>
+													)}
+												</div>
+											)}
+
+											{/* URL Method */}
+											{videoInputMethod === 'url' && (
+												<div className='space-y-3'>
+													<div className='space-y-2'>
+														<Input
+															placeholder='Nhập URL video (YouTube, Vimeo, hoặc link trực tiếp)'
+															value={field.value || ''}
+															onChange={(e) => {
+																field.onChange(e.target.value);
+																form.trigger(
+																	`modules.${moduleIndex}.lessons.${lessonIndex}.videoUrl`
+																);
+															}}
+															className={`${
+																field.value && !isValidVideoUrl(field.value)
+																	? 'border-red-300 focus:border-red-500'
+																	: ''
+															}`}
+														/>
+														{field.value && !isValidVideoUrl(field.value) && (
+															<p className='text-xs text-red-500'>
+																URL không hợp lệ. Vui lòng nhập URL video hợp lệ.
+															</p>
+														)}
 													</div>
-													<Progress value={uploadProgress} className='h-2' />
+													<div className='bg-blue-50 border border-blue-200 rounded-lg p-3'>
+														<p className='text-xs text-blue-700 font-medium mb-1'>
+															Các định dạng URL được hỗ trợ:
+														</p>
+														<ul className='text-xs text-blue-600 space-y-0.5'>
+															<li>• YouTube: https://youtube.com/watch?v=...</li>
+															<li>• Vimeo: https://vimeo.com/...</li>
+															<li>• Link trực tiếp: https://example.com/video.mp4</li>
+														</ul>
+													</div>
 												</div>
 											)}
 										</div>

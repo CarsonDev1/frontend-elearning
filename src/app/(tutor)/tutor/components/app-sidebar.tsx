@@ -35,11 +35,6 @@ const items = [
 		icon: '/images/books.svg',
 	},
 	{
-		title: 'Học Viên',
-		url: '/tutor/students',
-		icon: '/images/student.png',
-	},
-	{
 		title: 'Hồ sơ',
 		url: '/tutor/profile',
 		icon: '/images/mascot.svg',
