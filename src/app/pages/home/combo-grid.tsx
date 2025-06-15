@@ -11,9 +11,19 @@ interface ComboGridProps {
 	onLoadMore: () => void;
 	hasMore: boolean;
 	loadingMore: boolean;
+	currentLocale: string;
 }
 
-const ComboGrid = ({ combos, isLoading, isFetching, dictionary, onLoadMore, hasMore, loadingMore }: ComboGridProps) => {
+const ComboGrid = ({
+	combos,
+	isLoading,
+	isFetching,
+	dictionary,
+	onLoadMore,
+	hasMore,
+	loadingMore,
+	currentLocale,
+}: ComboGridProps) => {
 	return (
 		<>
 			<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'>
@@ -23,7 +33,13 @@ const ComboGrid = ({ combos, isLoading, isFetching, dictionary, onLoadMore, hasM
 							.fill(0)
 							.map((_, index) => <ComboCardSkeleton key={index} />)
 					: combos.map((combo: any, index: number) => (
-							<ComboCard key={combo.id} combo={combo} index={index} dictionary={dictionary} />
+							<ComboCard
+								key={combo.id}
+								combo={combo}
+								index={index}
+								dictionary={dictionary}
+								currentLocale={currentLocale}
+							/>
 					  ))}
 			</div>
 
@@ -44,7 +60,7 @@ const ComboGrid = ({ combos, isLoading, isFetching, dictionary, onLoadMore, hasM
 						<button
 							onClick={onLoadMore}
 							disabled={isFetching}
-							className='px-6 py-3 bg-primary text-white rounded-full font-medium hover:bg-primary-dark transition-colors flex items-center disabled:opacity-70 disabled:cursor-not-allowed'
+							className='px-6 py-3 bg-primary text-white rounded-full font-medium hover:bg-primary-600 transition-colors flex items-center disabled:opacity-70 disabled:cursor-not-allowed'
 						>
 							{isFetching ? dictionary.courses.loading : dictionary.courses.loadMore}
 							{!isFetching && (

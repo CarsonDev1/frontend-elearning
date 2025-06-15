@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import useEnrollments from '@/hooks/use-my-enrollments';
 import WhyChooseJPE from '@/app/pages/home/why-choose';
+import { formatPrice } from '@/lib/utils';
 
 export default function HomeClient({ dictionary }: { dictionary: any }) {
 	const [isMounted, setIsMounted] = useState(false);
@@ -132,15 +133,6 @@ export default function HomeClient({ dictionary }: { dictionary: any }) {
 		return null;
 	}
 
-	const formatCurrency = (amount: number) => {
-		return new Intl.NumberFormat(lang === 'jp' ? 'ja-JP' : 'vi-VN', {
-			style: 'currency',
-			currency: lang === 'jp' ? 'JPY' : 'VND',
-			minimumFractionDigits: 0,
-			maximumFractionDigits: 0,
-		}).format(amount);
-	};
-
 	// Handler to close modal and clean URL if needed
 	const handleCloseModal = () => {
 		setShowPaymentModal(false);
@@ -156,8 +148,8 @@ export default function HomeClient({ dictionary }: { dictionary: any }) {
 		<>
 			<main>
 				<Banner dictionary={dictionary} />
-				<PublicCourse dictionary={dictionary} />
-				<PublicCombo dictionary={dictionary} />
+				<PublicCourse dictionary={dictionary} currentLocale={lang} />
+				<PublicCombo dictionary={dictionary} currentLocale={lang} />
 				<WhyChooseJPE dictionary={dictionary} />
 			</main>
 
@@ -184,75 +176,53 @@ export default function HomeClient({ dictionary }: { dictionary: any }) {
 								</p>
 							</div>
 						) : paymentState.isSuccess ? (
-							<div className='flex flex-col items-center'>
-								<div className='bg-green-100 p-4 rounded-full mb-6'>
-									<CheckCircle className='h-16 w-16 text-green-500' />
-								</div>
-								<h2 className='text-2xl font-bold text-gray-800 text-center'>
-									{dictionary?.payment?.successful || 'Payment Successful!'}
+							<div className='flex flex-col items-center justify-center py-8'>
+								<CheckCircle className='h-16 w-16 text-green-500 mb-4' />
+								<h2 className='text-2xl font-bold text-gray-800'>
+									{dictionary?.payment?.success || 'Payment Successful!'}
 								</h2>
-								<p className='text-gray-600 text-center mt-2 mb-6'>{paymentState.message}</p>
-
+								<p className='text-gray-600 text-center mt-2'>
+									{paymentState.message || 'Your payment has been processed successfully.'}
+								</p>
 								{paymentState.orderInfo && (
-									<div className='w-full bg-gray-50 rounded-lg p-4 mb-4'>
-										<p className='text-gray-600 text-sm'>
-											{dictionary?.payment?.orderInfo || 'Order Information:'}
-										</p>
-										<p className='text-gray-800 font-medium'>{paymentState.orderInfo}</p>
-									</div>
+									<p className='text-sm text-gray-500 mt-1'>{paymentState.orderInfo}</p>
 								)}
-
 								{paymentState.amount > 0 && (
-									<div className='w-full bg-gray-50 rounded-lg p-4 mb-6'>
-										<p className='text-gray-600 text-sm'>
-											{dictionary?.payment?.amountPaid || 'Amount Paid:'}
-										</p>
-										<p className='text-gray-800 font-bold text-xl'>
-											{formatCurrency(paymentState.amount)}
-										</p>
-									</div>
+									<p className='text-lg font-semibold text-primary mt-3'>
+										{formatPrice(
+											paymentState.amount,
+											lang === 'jp' ? 'ja-JP' : 'vi-VN',
+											lang === 'jp' ? 'JPY' : 'VND'
+										)}
+									</p>
 								)}
-
-								<div className='flex flex-col sm:flex-row gap-4 w-full'>
-									<Button
-										className='flex-1'
-										onClick={() => {
-											router.replace(`/${lang}`);
-
-											setTimeout(() => {
-												router.push(`/${lang}/learning`);
-											}, 50);
-										}}
-									>
-										{dictionary?.payment?.goToLearning || 'Go to My Learning'}
+								<Link href={`/${lang}/my-courses`} className='mt-6'>
+									<Button className='bg-primary hover:bg-primary-dark text-white px-6 py-2'>
+										{dictionary?.payment?.goToCourses || 'Go to My Courses'}
 									</Button>
-
-									<Button variant='superOutline' className='flex-1' onClick={handleCloseModal}>
-										{dictionary?.payment?.continueBrowsing || 'Continue Browsing'}
-									</Button>
-								</div>
+								</Link>
 							</div>
 						) : (
-							<div className='flex flex-col items-center'>
-								<div className='bg-red-100 p-4 rounded-full mb-6'>
-									<XCircle className='h-16 w-16 text-red-500' />
-								</div>
-								<h2 className='text-2xl font-bold text-gray-800 text-center'>
+							<div className='flex flex-col items-center justify-center py-8'>
+								<XCircle className='h-16 w-16 text-red-500 mb-4' />
+								<h2 className='text-2xl font-bold text-gray-800'>
 									{dictionary?.payment?.failed || 'Payment Failed'}
 								</h2>
-								<p className='text-gray-600 text-center mt-2 mb-6'>{paymentState.message}</p>
-
-								<div className='flex flex-col sm:flex-row gap-4 w-full'>
-									<Button asChild className='flex-1'>
-										<Link href={`/${lang}/courses`}>
-											{dictionary?.payment?.returnToCourses || 'Return to Courses'}
-										</Link>
+								<p className='text-gray-600 text-center mt-2'>
+									{paymentState.message || 'There was an issue processing your payment.'}
+								</p>
+								{paymentState.orderInfo && (
+									<p className='text-sm text-gray-500 mt-1'>{paymentState.orderInfo}</p>
+								)}
+								<div className='flex gap-3 mt-6'>
+									<Button variant='primaryOutline' onClick={handleCloseModal}>
+										{dictionary?.payment?.close || 'Close'}
 									</Button>
-									<Button asChild variant='superOutline' className='flex-1'>
-										<Link href={`/${lang}/support`}>
-											{dictionary?.payment?.contactSupport || 'Contact Support'}
-										</Link>
-									</Button>
+									<Link href={`/${lang}/courses`}>
+										<Button className='bg-primary hover:bg-primary-dark text-white px-6 py-2'>
+											{dictionary?.payment?.tryAgain || 'Try Again'}
+										</Button>
+									</Link>
 								</div>
 							</div>
 						)}

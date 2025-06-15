@@ -14,7 +14,7 @@ import {
 	Send,
 	ChevronDown,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,6 +23,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import ClientOnly from '@/components/client-only';
 
 interface Language {
 	code: string;
@@ -31,148 +32,188 @@ interface Language {
 	labelText: string;
 }
 
+// Constants outside component to prevent recreation on each render
+const LANGUAGES: Language[] = [
+	{
+		code: 'vi',
+		name: 'Tiếng Việt',
+		flagSrc: '/images/vi.svg',
+		labelText: 'NGÔN NGỮ HIỂN THỊ',
+	},
+	{
+		code: 'jp',
+		name: '日本語',
+		flagSrc: '/images/jp.svg',
+		labelText: 'サイトの言語',
+	},
+];
+
+// Language-specific content defined outside component
+const CONTENT = {
+	vi: {
+		about: 'JPE cam kết cung cấp chương trình học tiếng Nhật chất lượng cao, giúp học viên đạt chứng chỉ JLPT và cải thiện kỹ năng giao tiếp cho cuộc sống hàng ngày và công việc.',
+		quickLinks: 'Liên kết nhanh',
+		home: 'Trang chủ',
+		courses: 'Khóa học',
+		combos: 'Gói combo',
+		aboutUs: 'Về chúng tôi',
+		contact: 'Liên hệ',
+		faq: 'Câu hỏi thường gặp',
+		newsletter: 'Bản tin',
+		newsletterText: 'Đăng ký nhận bản tin để cập nhật thông tin và ưu đãi đặc biệt.',
+		emailPlaceholder: 'Email của bạn',
+		subscribe: 'Đăng ký',
+		rightsReserved: 'Tất cả quyền được bảo lưu.',
+		privacy: 'Chính sách bảo mật',
+		terms: 'Điều khoản dịch vụ',
+	},
+	jp: {
+		about: 'JPEは高品質の日本語教育を提供し、学生がJLPT認定を取得し、日常生活や仕事のための会話スキルを向上させることを目指します。',
+		quickLinks: 'クイックリンク',
+		home: 'ホーム',
+		courses: 'コース',
+		combos: 'コースパッケージ',
+		aboutUs: '私たちについて',
+		contact: 'お問い合わせ',
+		faq: 'よくある質問',
+		newsletter: 'ニュースレター',
+		newsletterText: '更新情報や特別オファーを受け取るには、ニュースレターにご登録ください。',
+		emailPlaceholder: 'メールアドレス',
+		subscribe: '登録する',
+		rightsReserved: '全著作権所有。',
+		privacy: 'プライバシーポリシー',
+		terms: '利用規約',
+	},
+};
+
+// Extracted components for better organization and performance
+const SocialIcon = ({ icon: Icon, href = '#' }: { icon: any; href?: string }) => (
+	<a
+		href={href}
+		className='bg-primary-500/10 hover:bg-primary-500/20 p-2 rounded-full transition-colors duration-300'
+	>
+		<Icon size={18} className='text-primary-700' />
+	</a>
+);
+
+const QuickLink = ({ href, children }: { href: string; children: React.ReactNode }) => (
+	<li>
+		<Link
+			href={href}
+			className='text-gray-700 hover:text-primary-700 transition-colors duration-200 flex items-center'
+		>
+			<span className='mr-2 text-primary-500'>›</span> {children}
+		</Link>
+	</li>
+);
+
+const ContactItem = ({ icon: Icon, children }: { icon: any; children: React.ReactNode }) => (
+	<li className='flex items-start'>
+		<Icon className='h-5 w-5 mr-3 mt-0.5 flex-shrink-0 text-primary-500' />
+		{children}
+	</li>
+);
+
 const Footer = () => {
 	const router = useRouter();
 	const pathname = usePathname();
 	const [email, setEmail] = useState('');
 
-	const languages: Language[] = [
-		{
-			code: 'vi',
-			name: 'Tiếng Việt',
-			flagSrc: '/images/vi.svg',
-			labelText: 'NGÔN NGỮ HIỂN THỊ',
-		},
-		{
-			code: 'jp',
-			name: '日本語',
-			flagSrc: '/images/jp.svg',
-			labelText: 'サイトの言語',
-		},
-	];
+	// Extract locale from path once and memoize derived values
+	const pathnameSegments = useMemo(() => pathname.split('/').filter(Boolean), [pathname]);
 
-	const pathnameSegments = pathname.split('/').filter(Boolean);
-	const currentLocale = ['vi', 'jp'].includes(pathnameSegments[0]) ? pathnameSegments[0] : 'vi';
+	const currentLocale = useMemo(
+		() => (pathnameSegments[0] && ['vi', 'jp'].includes(pathnameSegments[0]) ? pathnameSegments[0] : 'vi'),
+		[pathnameSegments]
+	);
 
-	const currentLanguage = languages.find((lang) => lang.code === currentLocale) || languages[0];
-
-	const switchLanguage = (locale: string) => {
-		if (locale === currentLocale) return;
-
-		const pathWithoutLocale = pathnameSegments.slice(1).join('/');
-		const newPath = `/${locale}${pathWithoutLocale ? `/${pathWithoutLocale}` : ''}`;
-
-		router.push(newPath);
-	};
-
-	const handleSubscribe = (e: React.FormEvent) => {
-		e.preventDefault();
-		// TODO: Implement newsletter subscription
-		alert(`Subscribed with email: ${email}`);
-		setEmail('');
-	};
-
-	// Language-specific content
-	const content = {
-		vi: {
-			about: 'JPE cam kết cung cấp chương trình học tiếng Nhật chất lượng cao, giúp học viên đạt chứng chỉ JLPT và cải thiện kỹ năng giao tiếp cho cuộc sống hàng ngày và công việc.',
-			quickLinks: 'Liên kết nhanh',
-			home: 'Trang chủ',
-			courses: 'Khóa học',
-			combos: 'Gói combo',
-			aboutUs: 'Về chúng tôi',
-			contact: 'Liên hệ',
-			faq: 'Câu hỏi thường gặp',
-			newsletter: 'Bản tin',
-			newsletterText: 'Đăng ký nhận bản tin để cập nhật thông tin và ưu đãi đặc biệt.',
-			emailPlaceholder: 'Email của bạn',
-			subscribe: 'Đăng ký',
-			rightsReserved: 'Tất cả quyền được bảo lưu.',
-			privacy: 'Chính sách bảo mật',
-			terms: 'Điều khoản dịch vụ',
-		},
-		jp: {
-			about: 'JPEは高品質の日本語教育を提供し、学生がJLPT認定を取得し、日常生活や仕事のための会話スキルを向上させることを目指します。',
-			quickLinks: 'クイックリンク',
-			home: 'ホーム',
-			courses: 'コース',
-			combos: 'コースパッケージ',
-			aboutUs: '私たちについて',
-			contact: 'お問い合わせ',
-			faq: 'よくある質問',
-			newsletter: 'ニュースレター',
-			newsletterText: '更新情報や特別オファーを受け取るには、ニュースレターにご登録ください。',
-			emailPlaceholder: 'メールアドレス',
-			subscribe: '登録する',
-			rightsReserved: '全著作権所有。',
-			privacy: 'プライバシーポリシー',
-			terms: '利用規約',
-		},
-	};
+	const currentLanguage = useMemo(
+		() => LANGUAGES.find((lang) => lang.code === currentLocale) || LANGUAGES[0],
+		[currentLocale]
+	);
 
 	// Get the appropriate language content
-	const t = content[currentLocale === 'jp' ? 'jp' : 'vi'];
+	const t = useMemo(() => CONTENT[currentLocale === 'jp' ? 'jp' : 'vi'], [currentLocale]);
+
+	// Current year for copyright - handled safely for SSR
+	const currentYear = useMemo(() => {
+		return typeof window !== 'undefined' ? new Date().getFullYear() : 2024;
+	}, []);
+
+	// Memoized handlers
+	const switchLanguage = useCallback(
+		(locale: string) => {
+			if (locale === currentLocale) return;
+			const pathWithoutLocale = pathnameSegments.slice(1).join('/');
+			router.push(`/${locale}${pathWithoutLocale ? `/${pathWithoutLocale}` : ''}`);
+		},
+		[currentLocale, pathnameSegments, router]
+	);
+
+	const handleSubscribe = useCallback(
+		(e: React.FormEvent) => {
+			e.preventDefault();
+			// TODO: Implement newsletter subscription
+			alert(`Subscribed with email: ${email}`);
+			setEmail('');
+		},
+		[email]
+	);
+
+	const handleEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+		setEmail(e.target.value);
+	}, []);
 
 	return (
-		<footer className='bg-gradient-to-r from-[#5ece66] to-primary text-white pt-16 pb-8'>
-			<div className='container-lg'>
+		<footer className='relative py-10 overflow-hidden border-t border-primary-100'>
+			{/* Background decorations */}
+			<div className='absolute inset-0 z-[-1]'>
+				<div className='absolute top-0 left-0 w-full h-full bg-white/90 backdrop-blur-sm'></div>
+				<div className='absolute top-0 right-0 w-96 h-96 bg-primary-200/20 rounded-full blur-3xl'></div>
+				<div className='absolute bottom-0 left-0 w-80 h-80 bg-primary-300/10 rounded-full blur-3xl'></div>
+			</div>
+
+			<div className='container-lg relative z-10'>
 				{/* Main footer content */}
 				<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12'>
 					{/* Column 1: About */}
 					<div className='space-y-4'>
 						<div className='flex items-center'>
-							<Image
-								src='/images/Logo.gif'
-								alt='JPE Logo'
-								width={50}
-								height={50}
-								className='h-10 w-auto object-contain mr-2'
-							/>
-							<h3 className='text-white font-extrabold text-center text-xl italic'>JPE</h3>
+							<div className='relative w-12 h-12 mr-3'>
+								<Image src='/images/Logo.gif' alt='JPE Logo' fill className='object-contain' priority />
+							</div>
+							<h3 className='text-primary-700 font-extrabold text-center text-2xl italic tracking-wider'>
+								JPE
+							</h3>
 						</div>
-						<p className='text-white/80 text-sm leading-relaxed'>{t.about}</p>
-						<div className='flex space-x-3'>
-							<a
-								href='#'
-								className='bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors duration-300'
-							>
-								<Facebook size={18} />
-							</a>
-							<a
-								href='#'
-								className='bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors duration-300'
-							>
-								<Instagram size={18} />
-							</a>
-							<a
-								href='#'
-								className='bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors duration-300'
-							>
-								<YoutubeIcon size={18} />
-							</a>
-							<a
-								href='#'
-								className='bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors duration-300'
-							>
-								<Twitter size={18} />
-							</a>
+						<p className='text-gray-600 text-sm leading-relaxed'>{t.about}</p>
+						<div className='flex space-x-3 mt-4'>
+							<SocialIcon icon={Facebook} />
+							<SocialIcon icon={Instagram} />
+							<SocialIcon icon={YoutubeIcon} />
+							<SocialIcon icon={Twitter} />
 						</div>
 
 						{/* Language Switcher */}
 						<DropdownMenu>
-							<DropdownMenuTrigger className='flex items-center px-3 py-2 bg-white/10 border-none rounded-md hover:bg-white/20 focus:outline-none transition-colors mt-2'>
-								<span className='mr-2 font-semibold text-sm'>
-									{currentLanguage.labelText}: {currentLanguage.name}
-								</span>
-								<ChevronDown className='h-4 w-4' />
+							<DropdownMenuTrigger className='flex items-center px-3 py-2 bg-primary-500/10 border-none rounded-md hover:bg-primary-500/20 focus:outline-none transition-colors mt-2'>
+								<Image
+									src={currentLanguage.flagSrc}
+									alt={currentLanguage.name}
+									width={20}
+									height={12}
+									className='mr-2'
+								/>
+								<span className='mr-2 font-medium text-sm text-gray-700'>{currentLanguage.name}</span>
+								<ChevronDown className='h-4 w-4 text-gray-500' />
 							</DropdownMenuTrigger>
-							<DropdownMenuContent align='start' className='w-64'>
-								{languages.map((language) => (
+							<DropdownMenuContent align='start' className='w-52'>
+								{LANGUAGES.map((language) => (
 									<DropdownMenuItem
 										key={language.code}
 										onClick={() => switchLanguage(language.code)}
 										className={`flex items-center px-3 py-2 ${
-											currentLocale === language.code ? 'bg-gray-100' : ''
+											currentLocale === language.code ? 'bg-primary-50' : ''
 										}`}
 									>
 										<div className='mr-2 w-6 h-4 relative overflow-hidden rounded'>
@@ -192,107 +233,61 @@ const Footer = () => {
 
 					{/* Column 2: Quick Links */}
 					<div className='space-y-4'>
-						<h3 className="text-lg font-bold after:content-[''] after:block after:w-12 after:h-1 after:bg-white/40 after:mt-1">
+						<h3 className='text-lg font-bold text-primary-700 border-b border-primary-200 pb-2 mb-4'>
 							{t.quickLinks}
 						</h3>
-						<ul className='space-y-2'>
-							<li>
-								<Link
-									href={`/${currentLocale}`}
-									className='text-white/80 hover:text-white transition-colors duration-200 flex items-center'
-								>
-									<span className='mr-2'>›</span> {t.home}
-								</Link>
-							</li>
-							<li>
-								<Link
-									href={`/${currentLocale}/courses`}
-									className='text-white/80 hover:text-white transition-colors duration-200 flex items-center'
-								>
-									<span className='mr-2'>›</span> {t.courses}
-								</Link>
-							</li>
-							<li>
-								<Link
-									href={`/${currentLocale}/combos`}
-									className='text-white/80 hover:text-white transition-colors duration-200 flex items-center'
-								>
-									<span className='mr-2'>›</span> {t.combos}
-								</Link>
-							</li>
-							<li>
-								<Link
-									href={`/${currentLocale}/about`}
-									className='text-white/80 hover:text-white transition-colors duration-200 flex items-center'
-								>
-									<span className='mr-2'>›</span> {t.aboutUs}
-								</Link>
-							</li>
-							<li>
-								<Link
-									href={`/${currentLocale}/contact`}
-									className='text-white/80 hover:text-white transition-colors duration-200 flex items-center'
-								>
-									<span className='mr-2'>›</span> {t.contact}
-								</Link>
-							</li>
-							<li>
-								<Link
-									href={`/${currentLocale}/faq`}
-									className='text-white/80 hover:text-white transition-colors duration-200 flex items-center'
-								>
-									<span className='mr-2'>›</span> {t.faq}
-								</Link>
-							</li>
+						<ul className='space-y-3 grid grid-cols-1'>
+							<QuickLink href={`/${currentLocale}`}>{t.home}</QuickLink>
+							<QuickLink href={`/${currentLocale}/courses`}>{t.courses}</QuickLink>
+							<QuickLink href={`/${currentLocale}/combos`}>{t.combos}</QuickLink>
+							<QuickLink href={`/${currentLocale}/about`}>{t.aboutUs}</QuickLink>
+							<QuickLink href={`/${currentLocale}/contact`}>{t.contact}</QuickLink>
+							<QuickLink href={`/${currentLocale}/faq`}>{t.faq}</QuickLink>
 						</ul>
 					</div>
 
 					{/* Column 3: Contact Info */}
 					<div className='space-y-4'>
-						<h3 className="text-lg font-bold after:content-[''] after:block after:w-12 after:h-1 after:bg-white/40 after:mt-1">
+						<h3 className='text-lg font-bold text-primary-700 border-b border-primary-200 pb-2 mb-4'>
 							{t.contact}
 						</h3>
-						<ul className='space-y-3'>
-							<li className='flex items-start'>
-								<MapPin className='h-5 w-5 mr-3 mt-0.5 flex-shrink-0' />
-								<span className='text-white/80'>
+						<ul className='space-y-4'>
+							<ContactItem icon={MapPin}>
+								<span className='text-gray-600'>
 									123 Nguyen Hue, District 1, Ho Chi Minh City, Vietnam
 								</span>
-							</li>
-							<li className='flex items-center'>
-								<Phone className='h-5 w-5 mr-3 flex-shrink-0' />
-								<a href='tel:+84901234567' className='text-white/80 hover:text-white'>
+							</ContactItem>
+							<ContactItem icon={Phone}>
+								<a href='tel:+84901234567' className='text-gray-600 hover:text-primary-700'>
 									+84 90 123 4567
 								</a>
-							</li>
-							<li className='flex items-center'>
-								<Mail className='h-5 w-5 mr-3 flex-shrink-0' />
-								<a href='mailto:info@jpe.edu.vn' className='text-white/80 hover:text-white'>
+							</ContactItem>
+							<ContactItem icon={Mail}>
+								<a href='mailto:info@jpe.edu.vn' className='text-gray-600 hover:text-primary-700'>
 									info@jpe.edu.vn
 								</a>
-							</li>
+							</ContactItem>
 						</ul>
 					</div>
 
 					{/* Column 4: Newsletter */}
 					<div className='space-y-4'>
-						<h3 className="text-lg font-bold after:content-[''] after:block after:w-12 after:h-1 after:bg-white/40 after:mt-1">
+						<h3 className='text-lg font-bold text-primary-700 border-b border-primary-200 pb-2 mb-4'>
 							{t.newsletter}
 						</h3>
-						<p className='text-white/80 text-sm'>{t.newsletterText}</p>
-						<form onSubmit={handleSubscribe} className='flex'>
+						<p className='text-gray-600 text-sm'>{t.newsletterText}</p>
+						<form onSubmit={handleSubscribe} className='flex mt-4'>
 							<Input
 								type='email'
 								placeholder={t.emailPlaceholder}
-								className='bg-white/10 border-0 text-white placeholder:text-white/60 focus-visible:ring-white/30'
+								className='bg-primary-50 border-primary-100 text-gray-700 placeholder:text-gray-400 focus-visible:ring-primary-300'
 								value={email}
-								onChange={(e) => setEmail(e.target.value)}
+								onChange={handleEmailChange}
 								required
 							/>
 							<Button
 								type='submit'
-								variant='superOutline'
-								className='ml-2 bg-white text-primary hover:bg-white/90 border-0'
+								className='ml-2 bg-primary-600 text-white hover:bg-primary-700 border-0'
 							>
 								<Send className='h-4 w-4' />
 							</Button>
@@ -301,18 +296,18 @@ const Footer = () => {
 				</div>
 
 				{/* Divider */}
-				<div className='h-px bg-white/20 my-6'></div>
+				<div className='h-px bg-gradient-to-r from-transparent via-primary-200 to-transparent my-6'></div>
 
 				{/* Footer bottom */}
 				<div className='flex flex-col md:flex-row justify-between items-center'>
-					<div className='text-white/70 text-sm mb-4 md:mb-0'>
-						© {new Date().getFullYear()} JPE. {t.rightsReserved}
+					<div className='text-gray-500 text-sm mb-4 md:mb-0'>
+						© {currentYear} JPE. {t.rightsReserved}
 					</div>
-					<div className='flex space-x-4 text-sm text-white/70'>
-						<Link href={`/${currentLocale}/privacy`} className='hover:text-white transition-colors'>
+					<div className='flex space-x-6 text-sm text-gray-500'>
+						<Link href={`/${currentLocale}/privacy`} className='hover:text-primary-700 transition-colors'>
 							{t.privacy}
 						</Link>
-						<Link href={`/${currentLocale}/terms`} className='hover:text-white transition-colors'>
+						<Link href={`/${currentLocale}/terms`} className='hover:text-primary-700 transition-colors'>
 							{t.terms}
 						</Link>
 					</div>

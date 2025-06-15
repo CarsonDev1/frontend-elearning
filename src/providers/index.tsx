@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState, ReactNode } from 'react';
 import { AuthProvider } from '@/context/AuthContext';
+import ClientOnly from '@/components/client-only';
 
 // React Query Provider
 function QueryProviders({ children }: { children: ReactNode }) {
@@ -14,6 +15,8 @@ function QueryProviders({ children }: { children: ReactNode }) {
 					queries: {
 						staleTime: 60 * 1000, // 1 minute
 						refetchOnWindowFocus: false,
+						retry: false,
+						refetchOnMount: false,
 					},
 				},
 			})
@@ -22,7 +25,9 @@ function QueryProviders({ children }: { children: ReactNode }) {
 	return (
 		<QueryClientProvider client={queryClient}>
 			{children}
-			<ReactQueryDevtools initialIsOpen={false} />
+			<ClientOnly>
+				<ReactQueryDevtools initialIsOpen={false} />
+			</ClientOnly>
 		</QueryClientProvider>
 	);
 }

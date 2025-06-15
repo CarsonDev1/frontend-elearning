@@ -70,8 +70,33 @@ const LessonDetail = ({ lesson, onResourceClick, onExerciseClick }: any) => {
 				return 'Điền vào chỗ trống';
 			case 'MATCHING':
 				return 'Ghép cặp';
+			case 'LISTENING':
+				return 'Bài tập Nghe';
+			case 'SPEAKING':
+				return 'Bài tập Nói';
+			case 'SPEECH_RECOGNITION':
+				return 'Nhận dạng Giọng nói';
+			case 'PRONUNCIATION':
+				return 'Luyện Phát âm';
 			default:
 				return type;
+		}
+	};
+
+	const isSpeechExercise = (type: any) => {
+		return ['LISTENING', 'SPEAKING', 'SPEECH_RECOGNITION', 'PRONUNCIATION'].includes(type);
+	};
+
+	const getExerciseDescription = (exercise: any) => {
+		if (isSpeechExercise(exercise.type)) {
+			// For speech exercises, show target text or type description
+			if (exercise.targetText) {
+				return `${exercise.targetText} • ${exercise.difficultyLevel || 'BEGINNER'}`;
+			}
+			return `Bài tập Speech • ${exercise.difficultyLevel || 'BEGINNER'}`;
+		} else {
+			// For traditional exercises, show question count
+			return `${exercise.questions?.length || 0} câu hỏi`;
 		}
 	};
 
@@ -154,8 +179,7 @@ const LessonDetail = ({ lesson, onResourceClick, onExerciseClick }: any) => {
 									<div className='ml-2'>
 										<span className='text-sm font-medium text-purple-800'>{exercise.title}</span>
 										<div className='text-xs text-purple-600'>
-											{getExerciseTypeLabel(exercise.type)} • {exercise.questions?.length || 0}{' '}
-											câu hỏi
+											{getExerciseTypeLabel(exercise.type)} • {getExerciseDescription(exercise)}
 										</div>
 									</div>
 								</div>

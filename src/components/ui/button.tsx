@@ -12,20 +12,24 @@ const buttonVariants = cva(
 				default:
 					'bg-white text-black border-slate-200 border-2 border-b-4 active:border-b-2 hover:bg-slate-100 text-slate-500',
 				primary:
-					'bg-sky-400 text-primary-foreground hover:bg-sky-400/90 border-sky-500 border-b-4 active:border-b-0',
-				primaryOutline: 'bg-white text-sky-500 hover:bg-slate-100 border border-b-4 active:border-b-0',
+					'bg-primary text-white hover:bg-primary-600 border-primary-700 border-b-4 active:border-b-0 shadow-lg',
+				primaryOutline:
+					'bg-white text-primary hover:bg-primary-50 border-primary border-2 border-b-4 active:border-b-0',
 				secondary:
-					'bg-primary text-primary-foreground hover:bg-primary/90 border-green-700 border-b-4 active:border-b-0',
-				secondaryOutline: 'bg-white text-green-500 hover:bg-slate-100',
-				danger: 'bg-rose-500 text-primary-foreground hover:bg-rose-500/90 border-rose-600 border-b-4 active:border-b-0',
-				dangerOutline: 'bg-white text-rose-500 hover:bg-slate-100',
-				super: 'bg-indigo-500 text-primary-foreground hover:bg-indigo-500/90 border-indigo-600 border-b-4 active:border-b-0',
-				superOutline: 'bg-white text-indigo-500 hover:bg-slate-100',
+					'bg-secondary text-white hover:bg-secondary-600 border-secondary-700 border-b-4 active:border-b-0 shadow-lg',
+				secondaryOutline:
+					'bg-white text-secondary hover:bg-secondary-50 border-secondary border-2 border-b-4 active:border-b-0',
+				danger: 'bg-rose-500 text-white hover:bg-rose-600 border-rose-700 border-b-4 active:border-b-0 shadow-lg',
+				dangerOutline:
+					'bg-white text-rose-500 hover:bg-rose-50 border-rose-500 border-2 border-b-4 active:border-b-0',
+				super: 'bg-primary text-white hover:bg-primary-600 border-primary-700 border-b-4 active:border-b-0 shadow-md hover:shadow-lg',
+				superOutline:
+					'bg-white text-primary hover:bg-primary-50 border-primary border-2 border-b-4 active:border-b-0',
 				ghost: 'bg-transparent text-slate-500 border-transparent border-0 hover:bg-slate-100',
 				sidebar: 'bg-transparent text-slate-500 border-2 border-transparent hover:bg-slate-100 transition-none',
 				sidebarOutline:
-					'bg-sky-500/15 text-sky-500 border-sky-300 border-2 hover:bg-sky-500/20 transition-none',
-				custom: 'bg-gradient-to-r from-green-400 to-blue-500 hover:bg-slate-100 text-white border-b-4 border-indigo-600 active:border-b-0',
+					'bg-primary-50 text-primary border-primary-300 border-2 hover:bg-primary-100 transition-none',
+				custom: 'bg-primary text-white hover:bg-primary-600 border-primary-700 border-b-4 active:border-b-0 shadow-md hover:shadow-lg',
 			},
 			size: {
 				default: 'h-12 px-4 py-2',

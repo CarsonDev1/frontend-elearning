@@ -15,6 +15,10 @@ import {
 	PenTool,
 	Download,
 } from 'lucide-react';
+import SpeechExerciseComponent from '@/components/speech-exercise';
+import ResultModal from '@/components/result-modal';
+import DiscussionService from '@/services/discussion-service';
+import DiscussionList from '@/components/discussion/discussion-list';
 
 // Import types from CourseService
 import type {
@@ -115,7 +119,7 @@ const LearningPage: React.FC = () => {
 	const [activeModuleId, setActiveModuleId] = useState<number | null>(null);
 	const [currentLessonId, setCurrentLessonId] = useState<number | null>(null);
 	const [expandedModules, setExpandedModules] = useState<Record<number, boolean>>({});
-	const [activeTab, setActiveTab] = useState<'video' | 'resources' | 'exercises'>('video');
+	const [activeTab, setActiveTab] = useState<'video' | 'resources' | 'exercises' | 'discussions'>('video');
 	const [currentExerciseIndex, setCurrentExerciseIndex] = useState<number>(0);
 	const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
 	const [selectedOptions, setSelectedOptions] = useState<Record<number, number>>({});
@@ -139,6 +143,10 @@ const LearningPage: React.FC = () => {
 			queryClient.invalidateQueries({ queryKey: ['learningData', courseId] });
 		},
 	});
+
+	// State for result modal
+	const [resultModalOpen, setResultModalOpen] = useState(false);
+	const [exerciseResult, setExerciseResult] = useState<any>(null);
 
 	// Set initial lesson and module on data load
 	useEffect(() => {
@@ -282,14 +290,17 @@ const LearningPage: React.FC = () => {
 	};
 
 	// Play audio feedback
-	const playAudioFeedback = (isCorrect: boolean) => {
+	const playAudioFeedback = (isCorrect: boolean, accuracyScore?: number) => {
 		try {
-			if (isCorrect && correctAudioRef.current) {
+			// Nếu điểm chính xác là 100%, luôn phát âm thanh correct.mp3
+			const shouldPlayCorrectSound = isCorrect || (accuracyScore && accuracyScore >= 100);
+
+			if (shouldPlayCorrectSound && correctAudioRef.current) {
 				correctAudioRef.current.currentTime = 0; // Reset to start
 				correctAudioRef.current.play().catch((error) => {
 					console.log('Could not play correct audio:', error);
 				});
-			} else if (!isCorrect && incorrectAudioRef.current) {
+			} else if (!shouldPlayCorrectSound && incorrectAudioRef.current) {
 				incorrectAudioRef.current.currentTime = 0; // Reset to start
 				incorrectAudioRef.current.play().catch((error) => {
 					console.log('Could not play incorrect audio:', error);
@@ -318,7 +329,7 @@ const LearningPage: React.FC = () => {
 
 		// Small delay to ensure state is updated before playing sound
 		setTimeout(() => {
-			playAudioFeedback(isCorrect);
+			playAudioFeedback(isCorrect, isCorrect ? 100 : 0);
 		}, 100);
 	};
 
@@ -345,6 +356,68 @@ const LearningPage: React.FC = () => {
 		if (fileType.includes('audio')) return '🔊';
 		if (fileType.includes('video')) return '🎬';
 		return '📁';
+	};
+
+	// Check if exercise is a speech exercise
+	const isSpeechExercise = (exerciseType: string) => {
+		return ['LISTENING', 'SPEAKING', 'SPEECH_RECOGNITION', 'PRONUNCIATION'].includes(exerciseType);
+	};
+
+	// Check if URL is a YouTube video
+	const isYouTubeUrl = (url: string): boolean => {
+		if (!url) return false;
+		const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})$/;
+		return youtubeRegex.test(url);
+	};
+
+	// Extract YouTube video ID from URL
+	const getYouTubeVideoId = (url: string): string | null => {
+		if (!url) return null;
+
+		// Match YouTube URL patterns
+		const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+		const match = url.match(regExp);
+
+		return match && match[2].length === 11 ? match[2] : null;
+	};
+
+	// Handle speech exercise completion
+	const handleSpeechExerciseComplete = (result: any) => {
+		console.log('✅ Speech exercise completed and saved to database:', result);
+
+		// Đảm bảo kết quả có điểm chính xác 100% luôn được đánh giá là đạt
+		const isPassed = result.accuracyScore >= 100 ? true : result.isPassed;
+
+		// Play audio feedback with accuracy score
+		playAudioFeedback(isPassed, result.accuracyScore);
+
+		// Set result data and open modal
+		setExerciseResult({
+			id: result.id,
+			exerciseId: currentExercise?.id,
+			targetText: result.targetText,
+			recognizedText: result.recognizedText,
+			accuracyScore: result.accuracyScore,
+			confidenceScore: result.confidenceScore,
+			isPassed: isPassed, // Sử dụng giá trị đã được kiểm tra
+			attemptNumber: result.attemptNumber || 1,
+			timeSpentSeconds: result.timeSpentSeconds,
+			pronunciationFeedback: result.pronunciationFeedback || '',
+		});
+		setResultModalOpen(true);
+
+		// If passed, user can navigate to next exercise after closing modal
+	};
+
+	// Handle next exercise navigation
+	const handleNextExercise = () => {
+		if (currentExerciseIndex < currentLesson.exercises.length - 1) {
+			setCurrentExerciseIndex(currentExerciseIndex + 1);
+			setCurrentQuestionIndex(0);
+		} else {
+			// All exercises completed, maybe show completion message
+			console.log('All exercises completed!');
+		}
 	};
 
 	const currentLesson = getCurrentLesson();
@@ -391,7 +464,7 @@ const LearningPage: React.FC = () => {
 	}
 
 	return (
-		<div className='sec-com !pt-5'>
+		<div className='sec-com'>
 			<div className='flex flex-col lg:flex-row gap-4 relative container-lg'>
 				{/* Main content */}
 				<div className='lg:w-2/3 relative'>
@@ -435,6 +508,16 @@ const LearningPage: React.FC = () => {
 										{dict.learning.exercises} ({currentLesson.exercises.length})
 									</button>
 								)}
+								<button
+									onClick={() => setActiveTab('discussions')}
+									className={`px-4 py-2 font-medium ${
+										activeTab === 'discussions'
+											? 'text-primary border-b-2 border-primary'
+											: 'text-gray-500 hover:text-gray-700'
+									}`}
+								>
+									{dict.learning.discussions}
+								</button>
 							</div>
 
 							{/* Tab Content */}
@@ -443,12 +526,27 @@ const LearningPage: React.FC = () => {
 									{/* Video Player */}
 									<div className='relative pt-[56.25%] bg-black rounded-lg overflow-hidden mb-6'>
 										{currentLesson.videoUrl ? (
-											<video
-												className='absolute top-0 left-0 w-full h-full'
-												src={currentLesson.videoUrl}
-												controls
-												poster={course.thumbnailUrl}
-											/>
+											isYouTubeUrl(currentLesson.videoUrl) ? (
+												// YouTube Embed
+												<iframe
+													className='absolute top-0 left-0 w-full h-full'
+													src={`https://www.youtube.com/embed/${getYouTubeVideoId(
+														currentLesson.videoUrl
+													)}`}
+													title='YouTube video player'
+													frameBorder='0'
+													allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
+													allowFullScreen
+												></iframe>
+											) : (
+												// Direct video file
+												<video
+													className='absolute top-0 left-0 w-full h-full'
+													src={currentLesson.videoUrl}
+													controls
+													poster={course.thumbnailUrl}
+												/>
+											)
 										) : (
 											<div className='absolute top-0 left-0 w-full h-full flex items-center justify-center bg-gray-800'>
 												<p className='text-white'>{dict.learning.videoNotAvailable}</p>
@@ -503,161 +601,238 @@ const LearningPage: React.FC = () => {
 								</div>
 							)}
 
-							{activeTab === 'exercises' && currentExercise && currentQuestion && (
+							{activeTab === 'exercises' && currentExercise && (
 								<div className='mb-6'>
 									<div className='flex justify-between items-center mb-4'>
 										<h3 className='text-lg font-semibold text-gray-800'>{currentExercise.title}</h3>
 										<span className='text-sm text-gray-500'>
 											{dict.learning.exercise} {currentExerciseIndex + 1}/
-											{currentLesson.exercises.length} - {dict.learning.question}{' '}
-											{currentQuestionIndex + 1}/{currentExercise.questions.length}
+											{currentLesson.exercises.length}
+											{!isSpeechExercise(currentExercise.type) && currentQuestion && (
+												<>
+													{' '}
+													- {dict.learning.question} {currentQuestionIndex + 1}/
+													{currentExercise.questions.length}
+												</>
+											)}
 										</span>
 									</div>
 
-									<p className='text-gray-600 mb-4'>{currentExercise.description}</p>
-
-									<div className='bg-gray-50 rounded-lg p-4 mb-4'>
-										<h4 className='font-medium text-gray-800 mb-3'>{currentQuestion.content}</h4>
-
-										{currentQuestion.hint && (
-											<p className='text-sm text-gray-600 italic mb-3'>
-												{dict.learning.hint}: {currentQuestion.hint}
-											</p>
-										)}
-
-										<div className='space-y-2 mt-4'>
-											{currentQuestion.options.map((option: QuestionOption) => {
-												const isSelected = selectedOptions[currentQuestion.id] === option.id;
-												const hasAnswered = currentQuestion.id in selectedOptions;
-												const isCorrect = isOptionCorrect(currentQuestion.id, option.id);
-
-												let optionClass =
-													'border rounded-md p-3 cursor-pointer transition-all duration-200';
-
-												if (!hasAnswered) {
-													optionClass += isSelected
-														? ' border-blue-500 bg-blue-50 transform scale-[1.02]'
-														: ' hover:bg-gray-100 hover:border-gray-300';
-												} else {
-													if (isSelected) {
-														optionClass += isCorrect
-															? ' border-green-500 bg-green-50 text-green-800 transform scale-[1.02]'
-															: ' border-red-500 bg-red-50 text-red-800 transform scale-[1.02]';
-													} else if (isCorrect) {
-														optionClass += ' border-green-500 bg-green-50 text-green-800';
-													} else {
-														optionClass += ' opacity-60';
-													}
-													optionClass += ' cursor-default';
-												}
-
-												return (
-													<div
-														key={option.id}
-														className={optionClass}
-														onClick={() => {
-															if (!hasAnswered) {
-																handleOptionSelect(currentQuestion.id, option.id);
-															}
-														}}
-													>
-														<div className='flex items-center'>
-															{hasAnswered && isSelected && (
-																<span className='mr-2 text-lg'>
-																	{isCorrect ? '✅' : '❌'}
-																</span>
-															)}
-															{hasAnswered && !isSelected && isCorrect && (
-																<span className='mr-2 text-lg'>✅</span>
-															)}
-															<span className='flex-1'>{option.content}</span>
-														</div>
-													</div>
-												);
-											})}
-										</div>
-
-										{currentQuestion.id in selectedOptions && (
-											<div className='mt-4'>
-												<div
-													className={`p-3 rounded-md transition-all duration-300 ${
-														isOptionCorrect(
-															currentQuestion.id,
-															selectedOptions[currentQuestion.id]
-														)
-															? 'bg-green-50 text-green-800 border border-green-200'
-															: 'bg-red-50 text-red-800 border border-red-200'
-													}`}
-												>
-													<p className='font-medium mb-1 flex items-center'>
-														<span className='mr-2 text-lg'>
-															{isOptionCorrect(
-																currentQuestion.id,
-																selectedOptions[currentQuestion.id]
-															)
-																? '🎉'
-																: '💭'}
-														</span>
-														{isOptionCorrect(
-															currentQuestion.id,
-															selectedOptions[currentQuestion.id]
-														)
-															? dict.learning.correct
-															: dict.learning.incorrect}
-													</p>
-													<p className='text-sm'>{currentQuestion.answerExplanation}</p>
+									{/* Render Speech Exercise Component for speech exercises */}
+									{isSpeechExercise(currentExercise.type) ? (
+										<>
+											{/* Database Integration Status */}
+											<div className='mb-4 p-3 bg-green-50 border border-green-200 rounded-lg'>
+												<div className='flex items-center text-green-800'>
+													<span className='text-lg mr-2'>🔗</span>
+													<span className='font-medium'>Database Integration Active</span>
 												</div>
-
-												<div className='flex justify-between mt-4'>
-													<button
-														onClick={() => {
-															if (currentQuestionIndex > 0) {
-																setCurrentQuestionIndex(currentQuestionIndex - 1);
-															} else if (currentExerciseIndex > 0) {
-																setCurrentExerciseIndex(currentExerciseIndex - 1);
-																const prevExercise =
-																	currentLesson.exercises[currentExerciseIndex - 1];
-																setCurrentQuestionIndex(
-																	prevExercise.questions.length - 1
-																);
-															}
-														}}
-														disabled={
-															currentQuestionIndex === 0 && currentExerciseIndex === 0
-														}
-														className='px-3 py-1 bg-gray-100 text-gray-800 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
-													>
-														{dict.learning.previousQuestion}
-													</button>
-
-													<button
-														onClick={() => {
-															if (
-																currentQuestionIndex <
-																currentExercise.questions.length - 1
-															) {
-																setCurrentQuestionIndex(currentQuestionIndex + 1);
-															} else if (
-																currentExerciseIndex <
-																currentLesson.exercises.length - 1
-															) {
-																setCurrentExerciseIndex(currentExerciseIndex + 1);
-																setCurrentQuestionIndex(0);
-															}
-														}}
-														disabled={
-															currentQuestionIndex ===
-																currentExercise.questions.length - 1 &&
-															currentExerciseIndex === currentLesson.exercises.length - 1
-														}
-														className='px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
-													>
-														{dict.learning.nextQuestion}
-													</button>
+												<div className='text-sm text-green-700 mt-1'>
+													Kết quả sẽ được lưu vào database với Exercise ID:{' '}
+													{currentExercise.id}
 												</div>
 											</div>
-										)}
-									</div>
+
+											<SpeechExerciseComponent
+												exercise={{
+													id: currentExercise.id,
+													title: currentExercise.title,
+													description: currentExercise.description,
+													type: currentExercise.type as any,
+													targetText: currentExercise.targetText || '',
+													targetAudioUrl: currentExercise.targetAudioUrl,
+													difficultyLevel: currentExercise.difficultyLevel || 'BEGINNER',
+													speechRecognitionLanguage:
+														currentExercise.speechRecognitionLanguage || 'ja-JP',
+													minimumAccuracyScore: currentExercise.minimumAccuracyScore || 80,
+												}}
+												onComplete={handleSpeechExerciseComplete}
+												onNext={handleNextExercise}
+												dict={dict}
+												demoMode={false} // ENABLE REAL DATABASE MODE
+											/>
+										</>
+									) : (
+										/* Traditional Exercise Interface */
+										currentQuestion && (
+											<>
+												<p className='text-gray-600 mb-4'>{currentExercise.description}</p>
+
+												<div className='bg-gray-50 rounded-lg p-4 mb-4'>
+													<h4 className='font-medium text-gray-800 mb-3'>
+														{currentQuestion.content}
+													</h4>
+
+													{currentQuestion.hint && (
+														<p className='text-sm text-gray-600 italic mb-3'>
+															{dict.learning.hint}: {currentQuestion.hint}
+														</p>
+													)}
+
+													<div className='space-y-2 mt-4'>
+														{currentQuestion.options.map((option: QuestionOption) => {
+															const isSelected =
+																selectedOptions[currentQuestion.id] === option.id;
+															const hasAnswered = currentQuestion.id in selectedOptions;
+															const isCorrect = isOptionCorrect(
+																currentQuestion.id,
+																option.id
+															);
+
+															let optionClass =
+																'border rounded-md p-3 cursor-pointer transition-all duration-200';
+
+															if (!hasAnswered) {
+																optionClass += isSelected
+																	? ' border-blue-500 bg-blue-50 transform scale-[1.02]'
+																	: ' hover:bg-gray-100 hover:border-gray-300';
+															} else {
+																if (isSelected) {
+																	optionClass += isCorrect
+																		? ' border-green-500 bg-green-50 text-green-800 transform scale-[1.02]'
+																		: ' border-red-500 bg-red-50 text-red-800 transform scale-[1.02]';
+																} else if (isCorrect) {
+																	optionClass +=
+																		' border-green-500 bg-green-50 text-green-800';
+																} else {
+																	optionClass += ' opacity-60';
+																}
+																optionClass += ' cursor-default';
+															}
+
+															return (
+																<div
+																	key={option.id}
+																	className={optionClass}
+																	onClick={() => {
+																		if (!hasAnswered) {
+																			handleOptionSelect(
+																				currentQuestion.id,
+																				option.id
+																			);
+																		}
+																	}}
+																>
+																	<div className='flex items-center'>
+																		{hasAnswered && isSelected && (
+																			<span className='mr-2 text-lg'>
+																				{isCorrect ? '✅' : '❌'}
+																			</span>
+																		)}
+																		{hasAnswered && !isSelected && isCorrect && (
+																			<span className='mr-2 text-lg'>✅</span>
+																		)}
+																		<span className='flex-1'>{option.content}</span>
+																	</div>
+																</div>
+															);
+														})}
+													</div>
+
+													{currentQuestion.id in selectedOptions && (
+														<div className='mt-4'>
+															<div
+																className={`p-3 rounded-md transition-all duration-300 ${
+																	isOptionCorrect(
+																		currentQuestion.id,
+																		selectedOptions[currentQuestion.id]
+																	)
+																		? 'bg-green-50 text-green-800 border border-green-200'
+																		: 'bg-red-50 text-red-800 border border-red-200'
+																}`}
+															>
+																<p className='font-medium mb-1 flex items-center'>
+																	<span className='mr-2 text-lg'>
+																		{isOptionCorrect(
+																			currentQuestion.id,
+																			selectedOptions[currentQuestion.id]
+																		)
+																			? '🎉'
+																			: '💭'}
+																	</span>
+																	{isOptionCorrect(
+																		currentQuestion.id,
+																		selectedOptions[currentQuestion.id]
+																	)
+																		? dict.learning.correct
+																		: dict.learning.incorrect}
+																</p>
+																<p className='text-sm'>
+																	{currentQuestion.answerExplanation}
+																</p>
+															</div>
+
+															<div className='flex justify-between mt-4'>
+																<button
+																	onClick={() => {
+																		if (currentQuestionIndex > 0) {
+																			setCurrentQuestionIndex(
+																				currentQuestionIndex - 1
+																			);
+																		} else if (currentExerciseIndex > 0) {
+																			setCurrentExerciseIndex(
+																				currentExerciseIndex - 1
+																			);
+																			const prevExercise =
+																				currentLesson.exercises[
+																					currentExerciseIndex - 1
+																				];
+																			setCurrentQuestionIndex(
+																				prevExercise.questions.length - 1
+																			);
+																		}
+																	}}
+																	disabled={
+																		currentQuestionIndex === 0 &&
+																		currentExerciseIndex === 0
+																	}
+																	className='px-3 py-1 bg-gray-100 text-gray-800 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+																>
+																	{dict.learning.previousQuestion}
+																</button>
+
+																<button
+																	onClick={() => {
+																		if (
+																			currentQuestionIndex <
+																			currentExercise.questions.length - 1
+																		) {
+																			setCurrentQuestionIndex(
+																				currentQuestionIndex + 1
+																			);
+																		} else if (
+																			currentExerciseIndex <
+																			currentLesson.exercises.length - 1
+																		) {
+																			setCurrentExerciseIndex(
+																				currentExerciseIndex + 1
+																			);
+																			setCurrentQuestionIndex(0);
+																		}
+																	}}
+																	disabled={
+																		currentQuestionIndex ===
+																			currentExercise.questions.length - 1 &&
+																		currentExerciseIndex ===
+																			currentLesson.exercises.length - 1
+																	}
+																	className='px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+																>
+																	{dict.learning.nextQuestion}
+																</button>
+															</div>
+														</div>
+													)}
+												</div>
+											</>
+										)
+									)}
+								</div>
+							)}
+
+							{activeTab === 'discussions' && (
+								<div className='mb-6'>
+									<DiscussionList lessonId={currentLesson.id} lang={lang} dict={dict} />
 								</div>
 							)}
 
@@ -826,6 +1001,14 @@ const LearningPage: React.FC = () => {
 						))}
 					</div>
 				</div>
+
+				{/* Result Modal */}
+				<ResultModal
+					isOpen={resultModalOpen}
+					onClose={() => setResultModalOpen(false)}
+					result={exerciseResult}
+					onNext={exerciseResult?.isPassed ? handleNextExercise : undefined}
+				/>
 			</div>
 		</div>
 	);

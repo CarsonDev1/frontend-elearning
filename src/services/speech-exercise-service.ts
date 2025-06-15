@@ -1,4 +1,4 @@
-import api from '@/lib/api';
+import api from "@/lib/api";
 
 // Types for Speech Exercise
 export interface SpeechExercise {
@@ -96,7 +96,7 @@ const SpeechExerciseService = {
    * @param exerciseData The exercise data
    */
   createSpeechExercise: async (lessonId: number, exerciseData: CreateSpeechExerciseRequest): Promise<SpeechExercise> => {
-    const response = await api.post<SpeechExercise>(`/api/speech-exercises/lessons/${lessonId}`, exerciseData);
+    const response = await api.post<SpeechExercise>(`/speech-exercises/lessons/${lessonId}`, exerciseData);
     return response.data;
   },
 
@@ -106,7 +106,7 @@ const SpeechExerciseService = {
    * @param exerciseData The updated exercise data
    */
   updateSpeechExercise: async (exerciseId: number, exerciseData: UpdateSpeechExerciseRequest): Promise<SpeechExercise> => {
-    const response = await api.put<SpeechExercise>(`/api/speech-exercises/${exerciseId}`, exerciseData);
+    const response = await api.put<SpeechExercise>(`/speech-exercises/${exerciseId}`, exerciseData);
     return response.data;
   },
 
@@ -115,7 +115,7 @@ const SpeechExerciseService = {
    * @param exerciseId The exercise ID to delete
    */
   deleteSpeechExercise: async (exerciseId: number): Promise<void> => {
-    await api.delete(`/api/speech-exercises/${exerciseId}`);
+    await api.delete(`/speech-exercises/${exerciseId}`);
   },
 
   // ====================
@@ -127,7 +127,7 @@ const SpeechExerciseService = {
    * @param lessonId The lesson ID
    */
   getSpeechExercisesByLesson: async (lessonId: number): Promise<SpeechExercise[]> => {
-    const response = await api.get<SpeechExercise[]>(`/api/speech-exercises/lessons/${lessonId}`);
+    const response = await api.get<SpeechExercise[]>(`/speech-exercises/lessons/${lessonId}`);
     return response.data;
   },
 
@@ -136,7 +136,7 @@ const SpeechExerciseService = {
    * @param exerciseId The exercise ID
    */
   getSpeechExerciseById: async (exerciseId: number): Promise<SpeechExercise> => {
-    const response = await api.get<SpeechExercise>(`/api/speech-exercises/${exerciseId}`);
+    const response = await api.get<SpeechExercise>(`/speech-exercises/${exerciseId}`);
     return response.data;
   },
 
@@ -146,7 +146,7 @@ const SpeechExerciseService = {
    * @param submission The submission data
    */
   submitSpeechExercise: async (exerciseId: number, submission: SubmitSpeechExerciseRequest): Promise<SpeechExerciseResult> => {
-    const response = await api.post<SpeechExerciseResult>(`/api/speech-exercises/${exerciseId}/submit`, submission);
+    const response = await api.post<SpeechExerciseResult>(`/speech-exercises/${exerciseId}/submit`, submission);
     return response.data;
   },
 
@@ -162,7 +162,10 @@ const SpeechExerciseService = {
     formData.append('timeSpentSeconds', submission.timeSpentSeconds.toString());
     formData.append('audioFile', submission.audioFile);
 
-    const response = await api.post<SpeechExerciseResult>(`/api/speech-exercises/${exerciseId}/submit-with-audio`, formData, {
+    console.log(`🔍 Submitting audio file of type:`, submission.audioFile.type, 'size:', submission.audioFile.size);
+
+    // Remove leading slash from URL and use correct Content-Type
+    const response = await api.post<SpeechExerciseResult>(`speech-exercises/${exerciseId}/submit-with-audio`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -182,7 +185,7 @@ const SpeechExerciseService = {
     size = 10
   ): Promise<PaginationResponse<SpeechExerciseResult>> => {
     const response = await api.get<PaginationResponse<SpeechExerciseResult>>(
-      `/api/speech-exercises/${exerciseId}/results?page=${page}&size=${size}`
+      `/speech-exercises/${exerciseId}/results?page=${page}&size=${size}`
     );
     return response.data;
   },
@@ -194,7 +197,7 @@ const SpeechExerciseService = {
    */
   getMyResults: async (page = 0, size = 10): Promise<PaginationResponse<SpeechExerciseResult>> => {
     const response = await api.get<PaginationResponse<SpeechExerciseResult>>(
-      `/api/speech-exercises/my-results?page=${page}&size=${size}`
+      `/speech-exercises/my-results?page=${page}&size=${size}`
     );
     return response.data;
   },
@@ -203,7 +206,7 @@ const SpeechExerciseService = {
    * Get speech exercise statistics for the current student
    */
   getMyStats: async (): Promise<SpeechExerciseStats> => {
-    const response = await api.get<SpeechExerciseStats>('/api/speech-exercises/my-stats');
+    const response = await api.get<SpeechExerciseStats>('/speech-exercises/my-stats');
     return response.data;
   },
 
@@ -223,7 +226,7 @@ const SpeechExerciseService = {
     size = 10
   ): Promise<PaginationResponse<SpeechExerciseResult>> => {
     const response = await api.get<PaginationResponse<SpeechExerciseResult>>(
-      `/api/speech-exercises/students/${studentId}/results?page=${page}&size=${size}`
+      `/speech-exercises/students/${studentId}/results?page=${page}&size=${size}`
     );
     return response.data;
   },
@@ -233,7 +236,7 @@ const SpeechExerciseService = {
    * @param studentId The student ID
    */
   getStudentStats: async (studentId: number): Promise<SpeechExerciseStats> => {
-    const response = await api.get<SpeechExerciseStats>(`/api/speech-exercises/students/${studentId}/stats`);
+    const response = await api.get<SpeechExerciseStats>(`/speech-exercises/students/${studentId}/stats`);
     return response.data;
   },
 
@@ -242,17 +245,39 @@ const SpeechExerciseService = {
   // ====================
 
   /**
-   * Calculate text similarity between target and recognized text
+   * Calculate text similarity between target and recognized text with enhanced Japanese support
    * @param target The target text
    * @param recognized The recognized text
    * @returns Similarity percentage (0-100)
    */
   calculateSimilarity: (target: string, recognized: string): number => {
-    const normalizedTarget = target.toLowerCase().trim();
-    const normalizedRecognized = recognized.toLowerCase().trim();
+    // Validate inputs
+    if (!target || !recognized) return 0;
+
+    // Normalize Japanese text
+    const normalizeJapaneseText = (text: string): string => {
+      return text
+        .trim()
+        .replace(/\s+/g, '') // Remove all whitespace
+        .replace(/[。、！？]/g, '') // Remove Japanese punctuation
+        .toLowerCase(); // Convert to lowercase
+    };
+
+    const normalizedTarget = normalizeJapaneseText(target);
+    const normalizedRecognized = normalizeJapaneseText(recognized);
 
     if (normalizedTarget === normalizedRecognized) {
       return 100;
+    }
+
+    // Check if texts are in completely different languages
+    const isJapanese = (text: string) => /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(text);
+    const targetIsJapanese = isJapanese(normalizedTarget);
+    const recognizedIsJapanese = isJapanese(normalizedRecognized);
+
+    // Heavy penalty for different languages
+    if (targetIsJapanese !== recognizedIsJapanese) {
+      return Math.max(0, 30); // Maximum 30% for wrong language
     }
 
     // Levenshtein distance calculation
@@ -284,9 +309,17 @@ const SpeechExerciseService = {
 
     const maxLength = Math.max(targetLength, recognizedLength);
     const distance = matrix[recognizedLength][targetLength];
-    const similarity = Math.max(0, Math.round(((maxLength - distance) / maxLength) * 100));
 
-    return similarity;
+    if (maxLength === 0) return 100;
+
+    // Convert to similarity percentage
+    const similarity = Math.max(0, ((maxLength - distance) / maxLength) * 100);
+
+    // Apply additional penalties for very different lengths
+    const lengthDifference = Math.abs(targetLength - recognizedLength);
+    const lengthPenalty = Math.min(20, lengthDifference * 2); // Max 20% penalty
+
+    return Math.max(0, Math.round(similarity - lengthPenalty));
   },
 
   /**

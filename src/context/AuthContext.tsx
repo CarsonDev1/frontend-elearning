@@ -33,8 +33,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 	} = useQuery({
 		queryKey: ['currentUser'],
 		queryFn: () => AuthService.getCurrentUser(),
-		// Don't refetch on mount if we already have the data
-		staleTime: Infinity,
+		// Fix hydration issues by avoiding Infinity staleTime
+		staleTime: 5 * 60 * 1000, // 5 minutes
+		gcTime: 10 * 60 * 1000, // 10 minutes
+		refetchOnMount: false,
+		refetchOnWindowFocus: false,
+		retry: false,
+		enabled: typeof window !== 'undefined', // Only run on client side
 	});
 
 	// Function to manually refetch user data
@@ -90,8 +95,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 	return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 };
 
-// Custom hook to use the auth context
-export const useAuth = (): AuthContextType => {
+// Custom hook to use auth context
+export const useAuth = () => {
 	const context = useContext(AuthContext);
 	if (context === undefined) {
 		throw new Error('useAuth must be used within an AuthProvider');

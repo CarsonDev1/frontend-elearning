@@ -3,7 +3,6 @@ import CourseCard from '@/app/pages/home/course-card';
 import CourseCardSkeleton from '@/app/pages/home/course-skeleton';
 import React from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
 
 interface CourseGridProps {
 	courses: any[];
@@ -12,14 +11,19 @@ interface CourseGridProps {
 	dictionary: any;
 	hasMore: boolean;
 	loadingMore: boolean;
+	currentLocale: string;
 	onLoadMore?: () => void; // Made optional since we won't use it anymore
 }
 
-const CourseGrid = ({ courses, isLoading, isFetching, dictionary, hasMore, loadingMore }: CourseGridProps) => {
-	// Get the current language from params
-	const params = useParams();
-	const lang = (params.lang as string) || 'vi';
-
+const CourseGrid = ({
+	courses,
+	isLoading,
+	isFetching,
+	dictionary,
+	hasMore,
+	loadingMore,
+	currentLocale,
+}: CourseGridProps) => {
 	return (
 		<>
 			<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'>
@@ -29,7 +33,13 @@ const CourseGrid = ({ courses, isLoading, isFetching, dictionary, hasMore, loadi
 							.fill(0)
 							.map((_, index) => <CourseCardSkeleton key={index} />)
 					: courses.map((course: any, index: number) => (
-							<CourseCard key={course.id} course={course} index={index} dictionary={dictionary} />
+							<CourseCard
+								key={course.id}
+								course={course}
+								index={index}
+								dictionary={dictionary}
+								currentLocale={currentLocale}
+							/>
 					  ))}
 			</div>
 
@@ -47,8 +57,8 @@ const CourseGrid = ({ courses, isLoading, isFetching, dictionary, hasMore, loadi
 			{!isLoading && courses.length > 0 && (
 				<div className='mt-12 flex justify-center'>
 					{courses.length >= 6 && (
-						<Link href={`/${lang}/courses`}>
-							<button className='px-6 py-3 bg-primary text-white rounded-full font-medium hover:bg-primary-dark transition-colors flex items-center'>
+						<Link href={`/${currentLocale}/courses`}>
+							<button className='px-6 py-3 bg-primary text-white rounded-full font-medium hover:bg-primary-600 transition-colors flex items-center'>
 								{dictionary.courses?.viewAllCourses || 'View All Courses'}
 								<svg
 									xmlns='http://www.w3.org/2000/svg'
