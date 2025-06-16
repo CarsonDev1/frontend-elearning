@@ -41,6 +41,11 @@ interface SpeechExercise {
 	minimumAccuracyScore: number;
 }
 
+// Type guards
+const isListeningExercise = (type: string): type is 'LISTENING' => type === 'LISTENING';
+const isVoiceExercise = (type: string): boolean =>
+	type === 'SPEAKING' || type === 'PRONUNCIATION' || type === 'SPEECH_RECOGNITION';
+
 interface SpeechExerciseResult {
 	id?: number;
 	targetText: string;
@@ -90,6 +95,8 @@ const SpeechExerciseComponent: React.FC<SpeechExerciseComponentProps> = ({
 	const [hasStarted, setHasStarted] = useState(false);
 	const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
 	const [audioUrl, setAudioUrl] = useState<string | null>(null);
+	const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null); // For listening multiple choice
+	const [listeningOptions, setListeningOptions] = useState<string[]>([]); // Options for listening exercises
 
 	// Refs
 	const recognitionRef = useRef<any>(null);
@@ -98,6 +105,34 @@ const SpeechExerciseComponent: React.FC<SpeechExerciseComponentProps> = ({
 	const mediaRecorderRef = useRef<MediaRecorder | null>(null);
 	const audioChunksRef = useRef<Blob[]>([]);
 	const startTimeRef = useRef<Date | null>(null);
+
+	// Generate listening options if needed
+	useEffect(() => {
+		if (isListeningExercise(exercise.type)) {
+			// Generate options for listening exercise if they don't exist
+			// This would be better coming from backend but we'll generate some here for now
+			const correctOption = exercise.targetText;
+
+			// Create 3 wrong options by shuffling characters or using predefined options
+			const generateWrongOption = (correct: string) => {
+				// Simplified - in real app you'd want more sophisticated options
+				return correct
+					.split('')
+					.sort(() => Math.random() - 0.5)
+					.join('');
+			};
+
+			const wrongOptions = [
+				generateWrongOption(correctOption),
+				generateWrongOption(correctOption),
+				generateWrongOption(correctOption),
+			];
+
+			// Combine and shuffle options
+			const allOptions = [correctOption, ...wrongOptions];
+			setListeningOptions(allOptions.sort(() => Math.random() - 0.5));
+		}
+	}, [exercise.type, exercise.targetText]);
 
 	// Initialize Speech Recognition and Media Recorder
 	useEffect(() => {
@@ -231,95 +266,21 @@ const SpeechExerciseComponent: React.FC<SpeechExerciseComponentProps> = ({
 		};
 	}, [exercise.speechRecognitionLanguage, audioUrl]);
 
-	// Submit exercise result when recognized text changes
-	useEffect(() => {
-		if (recognizedText && !result && startTimeRef.current) {
-			// Add small delay to ensure confidence score is set
-			const submitTimer = setTimeout(() => {
-				submitExercise();
-			}, 500);
-
-			return () => clearTimeout(submitTimer);
-		}
-	}, [recognizedText]);
-
-	// Start/Stop listening
-	const toggleListening = useCallback(() => {
-		if (!recognitionRef.current || !mediaRecorderRef.current) return;
-
-		if (isListening) {
-			recognitionRef.current.stop();
-			if (mediaRecorderRef.current.state === 'recording') {
-				mediaRecorderRef.current.stop();
-			}
-		} else {
-			if (!hasStarted) {
-				setHasStarted(true);
-			}
-			setError(null);
-
-			// Start recording
-			if (mediaRecorderRef.current.state === 'inactive') {
-				audioChunksRef.current = [];
-				mediaRecorderRef.current.start();
-			}
-
-			// Start speech recognition
-			recognitionRef.current.start();
-		}
-	}, [isListening, hasStarted]);
-
-	// Play target audio
-	const playTargetAudio = useCallback(() => {
-		if (exercise.targetAudioUrl && audioRef.current) {
-			audioRef.current.play().catch((error) => {
-				console.error('Error playing target audio:', error);
-				// Fallback to speech synthesis
-				playTextToSpeech();
-			});
-		} else {
-			playTextToSpeech();
-		}
-	}, [exercise.targetText, exercise.speechRecognitionLanguage, exercise.targetAudioUrl]);
-
-	// Text-to-speech fallback
-	const playTextToSpeech = useCallback(() => {
-		if ('speechSynthesis' in window) {
-			// Stop any ongoing speech
-			speechSynthesis.cancel();
-
-			const utterance = new SpeechSynthesisUtterance(exercise.targetText);
-			utterance.lang = exercise.speechRecognitionLanguage || 'ja-JP';
-			utterance.rate = 0.7;
-			utterance.pitch = 1;
-			utterance.volume = 1;
-
-			utterance.onstart = () => setIsPlaying(true);
-			utterance.onend = () => setIsPlaying(false);
-			utterance.onerror = () => {
-				setIsPlaying(false);
-				setError('Không thể phát audio. Vui lòng thử lại.');
-			};
-
-			speechSynthesis.speak(utterance);
-		} else {
-			setError('Trình duyệt không hỗ trợ phát âm thanh.');
-		}
-	}, [exercise.targetText, exercise.speechRecognitionLanguage]);
-
-	// Play student's recorded audio
-	const playStudentAudio = useCallback(() => {
-		if (audioUrl && studentAudioRef.current) {
-			studentAudioRef.current.play().catch((error) => {
-				console.error('Error playing student audio:', error);
-				setError('Không thể phát lại ghi âm của bạn.');
-			});
-		}
-	}, [audioUrl]);
-
 	// Submit exercise result
 	const submitExercise = useCallback(async () => {
-		if (!recognizedText || !startTimeRef.current) return;
+		if (isListeningExercise(exercise.type) && !selectedAnswer) {
+			setError('Vui lòng chọn một phương án trả lời');
+			return;
+		}
+
+		if (isVoiceExercise(exercise.type) && !recognizedText) {
+			setError('Vui lòng ghi âm giọng nói trước khi nộp bài');
+			return;
+		}
+
+		if (!startTimeRef.current) {
+			startTimeRef.current = new Date();
+		}
 
 		setIsProcessing(true);
 
@@ -331,14 +292,17 @@ const SpeechExerciseComponent: React.FC<SpeechExerciseComponentProps> = ({
 				exerciseId: exercise.id,
 				exerciseType: exercise.type,
 				exerciseTitle: exercise.title,
-				recognizedText,
+				recognizedText: isListeningExercise(exercise.type) ? selectedAnswer : recognizedText,
 				confidenceScore,
 				timeSpent,
 			});
 
+			// For listening exercise, check if selected answer matches target text
+			const isListeningCorrect = isListeningExercise(exercise.type) && selectedAnswer === exercise.targetText;
+
 			// Prepare submission data for backend
 			const submissionData = {
-				recognizedText,
+				recognizedText: isListeningExercise(exercise.type) ? selectedAnswer || '' : recognizedText || '',
 				confidenceScore: confidenceScore / 100, // Convert to 0-1 scale
 				timeSpentSeconds: timeSpent,
 			};
@@ -349,12 +313,21 @@ const SpeechExerciseComponent: React.FC<SpeechExerciseComponentProps> = ({
 				// Demo mode: calculate locally, don't submit to backend
 				console.log('🎭 Demo Mode: Calculating result locally (not submitting to database)');
 
-				const accuracy = calculateAccuracyScore(exercise.targetText, recognizedText);
+				let accuracy = 0;
+
+				if (isListeningExercise(exercise.type)) {
+					// For listening, it's either 100% or 0%
+					accuracy = isListeningCorrect ? 100 : 0;
+				} else {
+					// For other types, use Levenshtein calculation
+					accuracy = calculateAccuracyScore(exercise.targetText, recognizedText || '');
+				}
+
 				const isPassed = accuracy >= exercise.minimumAccuracyScore;
 
 				exerciseResult = {
 					targetText: exercise.targetText,
-					recognizedText,
+					recognizedText: isListeningExercise(exercise.type) ? selectedAnswer || '' : recognizedText || '',
 					accuracyScore: accuracy,
 					confidenceScore,
 					pronunciationFeedback: isPassed
@@ -368,8 +341,8 @@ const SpeechExerciseComponent: React.FC<SpeechExerciseComponentProps> = ({
 				// Real mode: submit to backend API
 				let backendResult: BackendSpeechExerciseResult;
 
-				if (audioBlob) {
-					// Submit with audio if available
+				if (audioBlob && !isListeningExercise(exercise.type)) {
+					// Submit with audio if available (for non-listening exercises)
 					// Create the audio file with proper naming and MIME type
 					// The name must end with .webm and the type must be audio/webm
 					const audioFile = new File([audioBlob], `speech-${exercise.id}-${Date.now()}.webm`, {
@@ -378,7 +351,9 @@ const SpeechExerciseComponent: React.FC<SpeechExerciseComponentProps> = ({
 					});
 
 					backendResult = await SpeechExerciseService.submitSpeechExerciseWithAudio(exercise.id, {
-						recognizedText,
+						recognizedText: isListeningExercise(exercise.type)
+							? selectedAnswer || ''
+							: recognizedText || '',
 						confidenceScore: confidenceScore / 100,
 						timeSpentSeconds: timeSpent,
 						audioFile,
@@ -461,7 +436,93 @@ const SpeechExerciseComponent: React.FC<SpeechExerciseComponentProps> = ({
 		} finally {
 			setIsProcessing(false);
 		}
-	}, [recognizedText, confidenceScore, attemptNumber, exercise, onComplete, audioBlob]);
+	}, [recognizedText, selectedAnswer, confidenceScore, attemptNumber, exercise, onComplete, audioBlob, demoMode]);
+
+	// Submit exercise result when recognized text changes
+	useEffect(() => {
+		if (recognizedText && !result && startTimeRef.current && isVoiceExercise(exercise.type)) {
+			// Add small delay to ensure confidence score is set
+			const submitTimer = setTimeout(() => {
+				submitExercise();
+			}, 500);
+
+			return () => clearTimeout(submitTimer);
+		}
+	}, [recognizedText, exercise.type, result, submitExercise]);
+
+	// Start/Stop listening
+	const toggleListening = useCallback(() => {
+		if (!recognitionRef.current || !mediaRecorderRef.current) return;
+
+		if (isListening) {
+			recognitionRef.current.stop();
+			if (mediaRecorderRef.current.state === 'recording') {
+				mediaRecorderRef.current.stop();
+			}
+		} else {
+			if (!hasStarted) {
+				setHasStarted(true);
+			}
+			setError(null);
+
+			// Start recording
+			if (mediaRecorderRef.current.state === 'inactive') {
+				audioChunksRef.current = [];
+				mediaRecorderRef.current.start();
+			}
+
+			// Start speech recognition
+			recognitionRef.current.start();
+		}
+	}, [isListening, hasStarted]);
+
+	// Play target audio
+	const playTargetAudio = useCallback(() => {
+		if (exercise.targetAudioUrl && audioRef.current) {
+			audioRef.current.play().catch((error) => {
+				console.error('Error playing target audio:', error);
+				// Fallback to speech synthesis
+				playTextToSpeech();
+			});
+		} else {
+			playTextToSpeech();
+		}
+	}, [exercise.targetText, exercise.speechRecognitionLanguage, exercise.targetAudioUrl]);
+
+	// Text-to-speech fallback
+	const playTextToSpeech = useCallback(() => {
+		if ('speechSynthesis' in window) {
+			// Stop any ongoing speech
+			speechSynthesis.cancel();
+
+			const utterance = new SpeechSynthesisUtterance(exercise.targetText);
+			utterance.lang = exercise.speechRecognitionLanguage || 'ja-JP';
+			utterance.rate = 0.7;
+			utterance.pitch = 1;
+			utterance.volume = 1;
+
+			utterance.onstart = () => setIsPlaying(true);
+			utterance.onend = () => setIsPlaying(false);
+			utterance.onerror = () => {
+				setIsPlaying(false);
+				setError('Không thể phát audio. Vui lòng thử lại.');
+			};
+
+			speechSynthesis.speak(utterance);
+		} else {
+			setError('Trình duyệt không hỗ trợ phát âm thanh.');
+		}
+	}, [exercise.targetText, exercise.speechRecognitionLanguage]);
+
+	// Play student's recorded audio
+	const playStudentAudio = useCallback(() => {
+		if (audioUrl && studentAudioRef.current) {
+			studentAudioRef.current.play().catch((error) => {
+				console.error('Error playing student audio:', error);
+				setError('Không thể phát lại ghi âm của bạn.');
+			});
+		}
+	}, [audioUrl]);
 
 	// Calculate accuracy score using Levenshtein distance
 	const calculateAccuracyScore = (target: string, recognized: string): number => {
@@ -595,6 +656,38 @@ const SpeechExerciseComponent: React.FC<SpeechExerciseComponentProps> = ({
 	const handleStudentAudioPause = () => setIsPlayingStudent(false);
 	const handleStudentAudioEnded = () => setIsPlayingStudent(false);
 
+	// Get exercise type-specific instructions
+	const getExerciseInstructions = () => {
+		switch (exercise.type) {
+			case 'LISTENING':
+				return 'Hãy nghe và chọn câu bạn vừa nghe:';
+			case 'SPEAKING':
+				return 'Hãy đọc to câu sau:';
+			case 'PRONUNCIATION':
+				return 'Hãy luyện phát âm câu sau:';
+			case 'SPEECH_RECOGNITION':
+				return 'Hãy nghe và nhận dạng câu sau:';
+			default:
+				return 'Hãy hoàn thành bài tập:';
+		}
+	};
+
+	// Get exercise type-specific hints
+	const getExerciseHints = () => {
+		switch (exercise.type) {
+			case 'LISTENING':
+				return 'Nhấn nút "Nghe" để nghe phát âm mẫu, sau đó chọn câu bạn vừa nghe.';
+			case 'SPEAKING':
+				return 'Nhấn nút "Ghi âm" và đọc to văn bản dưới đây.';
+			case 'PRONUNCIATION':
+				return 'Nghe mẫu rồi luyện đọc đúng giọng điệu và nhấn "Ghi âm".';
+			case 'SPEECH_RECOGNITION':
+				return 'Nghe rồi nhắc lại chính xác nội dung bạn đã nghe.';
+			default:
+				return 'Nhấn nút "Ghi âm" và đọc to văn bản dưới đây.';
+		}
+	};
+
 	return (
 		<div className='space-y-6'>
 			{/* Demo Mode Indicator */}
@@ -644,149 +737,208 @@ const SpeechExerciseComponent: React.FC<SpeechExerciseComponentProps> = ({
 							{/* Instructions */}
 							<div className='mb-6'>
 								<h3 className='text-lg font-semibold text-gray-700 mb-2'>
-									{exercise.type === 'LISTENING'
-										? 'Hãy nghe và lặp lại câu sau:'
-										: 'Hãy đọc to câu sau:'}
+									{getExerciseInstructions()}
 								</h3>
-								<p className='text-sm text-gray-500'>
-									{exercise.type === 'LISTENING'
-										? 'Nhấn nút "Nghe" để nghe phát âm mẫu, sau đó nhấn nút "Ghi âm" để nói theo.'
-										: 'Nhấn nút "Ghi âm" và đọc to văn bản dưới đây.'}
-								</p>
+								<p className='text-sm text-gray-500'>{getExerciseHints()}</p>
 							</div>
 
-							{/* Target Text Display */}
-							<div className='bg-blue-50 p-8 rounded-lg border-2 border-blue-200'>
-								<div className='text-4xl font-bold text-blue-900 mb-4 font-japanese'>
-									{exercise.targetText}
+							{/* Target Text Display - Hidden for LISTENING exercises */}
+							{!isListeningExercise(exercise.type) && (
+								<div className='bg-blue-50 p-8 rounded-lg border-2 border-blue-200'>
+									<div className='text-4xl font-bold text-blue-900 mb-4 font-japanese'>
+										{exercise.targetText}
+									</div>
 								</div>
+							)}
 
-								{/* Play Audio Button */}
-								{exercise.type === 'LISTENING' && (
-									<Button
-										variant='superOutline'
-										size='lg'
-										onClick={playTargetAudio}
-										disabled={isPlaying}
-										className='mx-2'
-									>
-										{isPlaying ? (
-											<>
-												<Volume2 className='h-5 w-5 mr-2' />
-												Đang phát...
-											</>
-										) : (
-											<>
-												<Play className='h-5 w-5 mr-2' />
-												Nghe phát âm
-											</>
-										)}
-									</Button>
-								)}
-							</div>
-
-							{/* Speech Recognition Interface */}
-							<div className='space-y-4'>
+							{/* Play Audio Button */}
+							{(isListeningExercise(exercise.type) ||
+								exercise.type === 'PRONUNCIATION' ||
+								exercise.type === 'SPEECH_RECOGNITION') && (
 								<Button
+									variant='superOutline'
 									size='lg'
-									onClick={toggleListening}
-									disabled={isProcessing}
-									className={`px-8 py-4 text-lg text-white ${
-										isListening
-											? 'bg-red-500 hover:bg-red-600 animate-pulse'
-											: 'bg-blue-500 hover:bg-blue-600'
-									}`}
+									onClick={playTargetAudio}
+									disabled={isPlaying}
+									className='mx-2'
 								>
-									{isListening ? (
+									{isPlaying ? (
 										<>
-											<MicOff className='h-6 w-6 mr-2' />
-											Dừng ghi âm
+											<Volume2 className='h-5 w-5 mr-2' />
+											Đang phát...
 										</>
 									) : (
 										<>
-											<Mic className='h-6 w-6 mr-2' />
-											{hasStarted ? 'Ghi âm lại' : 'Bắt đầu ghi âm'}
+											<Play className='h-5 w-5 mr-2' />
+											Nghe phát âm
 										</>
 									)}
 								</Button>
+							)}
 
-								{/* Listening indicator */}
-								{isListening && (
-									<motion.div
-										initial={{ opacity: 0, scale: 0.8 }}
-										animate={{ opacity: 1, scale: 1 }}
-										className='flex items-center justify-center space-x-2 text-red-600'
-									>
-										<div className='flex space-x-1'>
-											<div
-												className='w-2 h-8 bg-red-500 rounded animate-pulse'
-												style={{ animationDelay: '0ms' }}
-											></div>
-											<div
-												className='w-2 h-6 bg-red-500 rounded animate-pulse'
-												style={{ animationDelay: '100ms' }}
-											></div>
-											<div
-												className='w-2 h-10 bg-red-500 rounded animate-pulse'
-												style={{ animationDelay: '200ms' }}
-											></div>
-											<div
-												className='w-2 h-4 bg-red-500 rounded animate-pulse'
-												style={{ animationDelay: '300ms' }}
-											></div>
-										</div>
-										<span className='text-sm font-medium'>Đang nghe...</span>
-									</motion.div>
-								)}
-
-								{/* Recognized text preview */}
-								{recognizedText && !result && (
-									<motion.div
-										initial={{ opacity: 0, y: 20 }}
-										animate={{ opacity: 1, y: 0 }}
-										className='bg-gray-50 p-4 rounded-lg border'
-									>
-										<h4 className='text-sm font-medium text-gray-700 mb-2'>
-											Văn bản đã nhận diện:
-										</h4>
-										<p className='text-lg text-gray-900 font-japanese'>{recognizedText}</p>
-										<p className='text-sm text-gray-500 mt-2'>Độ tin cậy: {confidenceScore}%</p>
-
-										{/* Student audio playback */}
-										{audioUrl && (
-											<div className='mt-3 flex items-center space-x-2'>
-												<Button
-													variant='superOutline'
-													size='sm'
-													onClick={playStudentAudio}
-													disabled={isPlayingStudent}
-													className='flex items-center space-x-1'
-												>
-													{isPlayingStudent ? (
-														<>
-															<Pause className='h-4 w-4' />
-															<span>Đang phát...</span>
-														</>
-													) : (
-														<>
-															<Play className='h-4 w-4' />
-															<span>Nghe lại giọng nói của bạn</span>
-														</>
-													)}
-												</Button>
-											</div>
-										)}
-									</motion.div>
-								)}
-
-								{/* Processing indicator */}
-								{isProcessing && (
-									<div className='flex items-center justify-center space-x-2 text-blue-600'>
-										<Loader2 className='h-5 w-5 animate-spin' />
-										<span>Đang xử lý...</span>
+							{/* Listening Exercise Multiple Choice Interface */}
+							{isListeningExercise(exercise.type) && (
+								<div className='space-y-4 mt-6'>
+									<h4 className='text-md font-medium text-gray-700'>Chọn câu bạn vừa nghe:</h4>
+									<div className='grid grid-cols-1 gap-3'>
+										{listeningOptions.map((option, index) => (
+											<Button
+												key={index}
+												variant={selectedAnswer === option ? 'default' : 'superOutline'}
+												className={`justify-start p-4 h-auto text-left ${
+													selectedAnswer === option ? 'bg-blue-500 text-white' : ''
+												}`}
+												onClick={() => setSelectedAnswer(option)}
+											>
+												<span className='text-lg font-japanese'>{option}</span>
+											</Button>
+										))}
 									</div>
-								)}
-							</div>
+									<Button
+										size='lg'
+										onClick={submitExercise}
+										disabled={isProcessing || !selectedAnswer}
+										className='mt-4 bg-green-600 hover:bg-green-700'
+									>
+										{isProcessing ? (
+											<>
+												<Loader2 className='h-5 w-5 mr-2 animate-spin' />
+												Đang xử lý...
+											</>
+										) : (
+											<>
+												<CheckCircle className='h-5 w-5 mr-2' />
+												Nộp bài
+											</>
+										)}
+									</Button>
+								</div>
+							)}
+
+							{/* Speech Recognition Interface - for SPEAKING, PRONUNCIATION, SPEECH_RECOGNITION */}
+							{isVoiceExercise(exercise.type) && (
+								<div className='space-y-4'>
+									<Button
+										size='lg'
+										onClick={toggleListening}
+										disabled={isProcessing}
+										className={`px-8 py-4 text-lg text-white ${
+											isListening
+												? 'bg-red-500 hover:bg-red-600 animate-pulse'
+												: 'bg-blue-500 hover:bg-blue-600'
+										}`}
+									>
+										{isListening ? (
+											<>
+												<MicOff className='h-6 w-6 mr-2' />
+												Dừng ghi âm
+											</>
+										) : (
+											<>
+												<Mic className='h-6 w-6 mr-2' />
+												{hasStarted ? 'Ghi âm lại' : 'Bắt đầu ghi âm'}
+											</>
+										)}
+									</Button>
+
+									{/* Listening indicator */}
+									{isListening && (
+										<motion.div
+											initial={{ opacity: 0, scale: 0.8 }}
+											animate={{ opacity: 1, scale: 1 }}
+											className='flex items-center justify-center space-x-2 text-red-600'
+										>
+											<div className='flex space-x-1'>
+												<div
+													className='w-2 h-8 bg-red-500 rounded animate-pulse'
+													style={{ animationDelay: '0ms' }}
+												></div>
+												<div
+													className='w-2 h-6 bg-red-500 rounded animate-pulse'
+													style={{ animationDelay: '100ms' }}
+												></div>
+												<div
+													className='w-2 h-10 bg-red-500 rounded animate-pulse'
+													style={{ animationDelay: '200ms' }}
+												></div>
+												<div
+													className='w-2 h-4 bg-red-500 rounded animate-pulse'
+													style={{ animationDelay: '300ms' }}
+												></div>
+											</div>
+											<span className='text-sm font-medium'>Đang nghe...</span>
+										</motion.div>
+									)}
+
+									{/* Recognized text preview */}
+									{recognizedText && !result && (
+										<motion.div
+											initial={{ opacity: 0, y: 20 }}
+											animate={{ opacity: 1, y: 0 }}
+											className='bg-gray-50 p-4 rounded-lg border'
+										>
+											<h4 className='text-sm font-medium text-gray-700 mb-2'>
+												Văn bản đã nhận diện:
+											</h4>
+											<p className='text-lg text-gray-900 font-japanese'>{recognizedText}</p>
+											<p className='text-sm text-gray-500 mt-2'>Độ tin cậy: {confidenceScore}%</p>
+
+											{/* Student audio playback */}
+											{audioUrl && (
+												<div className='mt-3 flex items-center space-x-2'>
+													<Button
+														variant='superOutline'
+														size='sm'
+														onClick={playStudentAudio}
+														disabled={isPlayingStudent}
+														className='flex items-center space-x-1'
+													>
+														{isPlayingStudent ? (
+															<>
+																<Pause className='h-4 w-4' />
+																<span>Đang phát...</span>
+															</>
+														) : (
+															<>
+																<Play className='h-4 w-4' />
+																<span>Nghe lại giọng nói của bạn</span>
+															</>
+														)}
+													</Button>
+												</div>
+											)}
+
+											{/* Submit button */}
+											<Button
+												size='lg'
+												onClick={submitExercise}
+												disabled={isProcessing}
+												className='mt-4 bg-green-600 hover:bg-green-700'
+											>
+												{isProcessing ? (
+													<>
+														<Loader2 className='h-5 w-5 mr-2 animate-spin' />
+														Đang xử lý...
+													</>
+												) : (
+													<>
+														<CheckCircle className='h-5 w-5 mr-2' />
+														Nộp bài
+													</>
+												)}
+											</Button>
+										</motion.div>
+									)}
+
+									{/* Processing indicator */}
+									{isProcessing && (
+										<div className='flex items-center justify-center space-x-2 text-blue-600'>
+											<Loader2 className='h-5 w-5 animate-spin' />
+											<span>Đang xử lý...</span>
+										</div>
+									)}
+								</div>
+							)}
 						</div>
 					</CardContent>
 				</Card>
