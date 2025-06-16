@@ -146,7 +146,12 @@ const SpeechExerciseService = {
    * @param submission The submission data
    */
   submitSpeechExercise: async (exerciseId: number, submission: SubmitSpeechExerciseRequest): Promise<SpeechExerciseResult> => {
-    const response = await api.post<SpeechExerciseResult>(`/speech-exercises/${exerciseId}/submit`, submission);
+    // Include exerciseId in the submission object
+    const requestWithId = {
+      ...submission,
+      exerciseId
+    };
+    const response = await api.post<SpeechExerciseResult>(`/speech-exercises/${exerciseId}/submit`, requestWithId);
     return response.data;
   },
 
