@@ -126,7 +126,22 @@
 		"summary": "Tóm tắt combo",
 		"noCourses": "Chưa có khóa học nào trong combo này",
 		"off": "giảm",
-		"requirements": "Yêu cầu"
+		"requirements": "Yêu cầu",
+		"purchase": {
+			"title": "Mua combo",
+			"subtitle": "Hoàn tất thông tin để mua combo",
+			"personalInfo": "Thông tin người mua",
+			"personalInfoDesc": "Vui lòng cung cấp thông tin để chúng tôi có thể liên hệ và cung cấp quyền truy cập khóa học",
+			"fullName": "Họ và tên",
+			"email": "Email",
+			"phoneNumber": "Số điện thoại",
+			"agreeTerms": "Tôi đồng ý với điều khoản sử dụng và chính sách bảo mật",
+			"subscribeNewsletter": "Đăng ký nhận tin tức và ưu đãi đặc biệt từ JPE",
+			"accountCreationNote": "Sau khi thanh toán thành công, chúng tôi sẽ tự động tạo tài khoản cho bạn và gửi thông tin đăng nhập qua email. Bạn có thể ngay lập tức truy cập tất cả khóa học trong combo này.",
+			"payNow": "Thanh toán ngay",
+			"processing": "Đang xử lý...",
+			"orderSummary": "Tóm tắt đơn hàng"
+		}
 	},
 	"payment": {
 		"processing": "Đang xử lý thanh toán",
@@ -139,7 +154,21 @@
 		"exploreCourses": "Khám phá thêm khóa học",
 		"returnToCourses": "Quay lại danh sách khóa học",
 		"contactSupport": "Liên hệ hỗ trợ",
-		"continueBrowsing": "Tiếp tục xem"
+		"continueBrowsing": "Tiếp tục xem",
+		"success": "Thanh toán thành công!",
+		"successMessage": "Cảm ơn bạn đã mua combo. Chúng tôi đang xử lý đơn hàng của bạn.",
+		"nextSteps": "Bước tiếp theo",
+		"nextStepsDesc": "Chúng tôi đang xử lý đơn hàng và tạo tài khoản cho bạn",
+		"checkEmail": "Kiểm tra email của bạn!",
+		"checkEmailDesc": "Chúng tôi đã gửi thông tin đăng nhập và hướng dẫn truy cập khóa học đến email của bạn. Vui lòng kiểm tra cả hộp thư spam.",
+		"benefits": "Những gì bạn sẽ nhận được:",
+		"benefit1": "Tài khoản học viên được tạo tự động",
+		"benefit2": "Quyền truy cập ngay lập tức vào tất cả khóa học trong combo",
+		"benefit3": "Chứng chỉ hoàn thành cho mỗi khóa học",
+		"benefit4": "Hỗ trợ 24/7 từ đội ngũ JPE",
+		"loginPrompt": "Bạn có thể đăng nhập ngay bây giờ bằng email và mật khẩu được gửi qua email",
+		"loginToAccount": "Đăng nhập vào tài khoản",
+		"viewMoreCombos": "Xem thêm combo khác"
 	},
 	"learning": {
 		"courseOverview": "Tổng quan khóa học",
@@ -245,6 +274,105 @@
 		"errorTitle": "Lỗi tải khóa học",
 		"errorDescription": "Đã xảy ra lỗi khi tải khóa học của bạn. Vui lòng thử lại.",
 		"retry": "Thử lại"
+	},
+	"profile": {
+		"welcomeMessage": "Chào mừng, {name}! 👋",
+		"welcomeSubtitle": "Tiếp tục hành trình học tập tiếng Nhật của bạn",
+		"accessDenied": "Truy cập bị từ chối",
+		"loginRequired": "Bạn cần đăng nhập với tài khoản học viên để truy cập trang này.",
+		"stats": {
+			"enrolledCourses": "Khóa học đã đăng ký",
+			"averageProgress": "Tiến độ trung bình",
+			"completedCourses": "Khóa học hoàn thành",
+			"totalSpent": "Tổng chi tiêu"
+		},
+		"tabs": {
+			"overview": "Tổng quan",
+			"courses": "Khóa học",
+			"payments": "Thanh toán",
+			"profile": "Hồ sơ"
+		},
+		"overview": {
+			"recentCourses": "Khóa học gần đây",
+			"recentCoursesDesc": "Tiếp tục học từ nơi bạn đã dừng lại",
+			"noCoursesInProgress": "Chưa có khóa học nào đang học",
+			"percentComplete": "% hoàn thành",
+			"continue": "Tiếp tục",
+			"achievements": "Thành tích",
+			"achievementsDesc": "Các cột mốc bạn đã đạt được",
+			"activeLearner": "Người học tích cực",
+			"activeLearnerDesc": "Đã học {count} khóa học",
+			"completer": "Người hoàn thành",
+			"completerDesc": "Hoàn thành {count} khóa học",
+			"persistent": "Người kiên trì",
+			"persistentDesc": "Tiến độ trung bình trên 50%"
+		},
+		"courses": {
+			"inProgress": "Đang học",
+			"completed": "Hoàn thành",
+			"continueLearning": "Tiếp tục học",
+			"reviewCourse": "Xem lại",
+			"certificate": "Chứng chỉ"
+		},
+		"payments": {
+			"paymentHistory": "Lịch sử thanh toán",
+			"paymentHistoryDesc": "Tất cả các giao dịch thanh toán của bạn",
+			"noTransactions": "Chưa có giao dịch nào",
+			"transaction": "Giao dịch",
+			"loading": "Đang tải...",
+			"status": {
+				"completed": "Thành công",
+				"pending": "Đang xử lý",
+				"failed": "Thất bại",
+				"cancelled": "Đã hủy"
+			}
+		},
+		"info": {
+			"personalInfo": "Thông tin cá nhân",
+			"personalInfoDesc": "Quản lý thông tin tài khoản của bạn",
+			"fullName": "Họ và tên",
+			"email": "Email",
+			"phoneNumber": "Số điện thoại",
+			"phoneNotUpdated": "Chưa cập nhật",
+			"joinDate": "Ngày tham gia",
+			"editProfile": "Chỉnh sửa hồ sơ"
+		}
+	},
+	"profileEdit": {
+		"title": "Chỉnh sửa hồ sơ",
+		"subtitle": "Cập nhật thông tin cá nhân của bạn",
+		"backToProfile": "Quay lại",
+		"avatar": {
+			"title": "Ảnh đại diện",
+			"description": "Cập nhật ảnh đại diện của bạn",
+			"clickToChange": "Nhấp vào biểu tượng camera để thay đổi ảnh",
+			"fileRequirements": "Tối đa 5MB, định dạng: JPG, PNG, GIF"
+		},
+		"form": {
+			"title": "Thông tin cá nhân",
+			"description": "Cập nhật thông tin cơ bản của bạn",
+			"fullNameLabel": "Họ và tên *",
+			"fullNamePlaceholder": "Nhập họ và tên",
+			"emailLabel": "Email *",
+			"emailPlaceholder": "Nhập địa chỉ email",
+			"phoneLabel": "Số điện thoại",
+			"phonePlaceholder": "Nhập số điện thoại",
+			"updateButton": "Cập nhật thông tin",
+			"updating": "Đang cập nhật...",
+			"cancelButton": "Hủy"
+		},
+		"validation": {
+			"fullNameRequired": "Họ tên phải có ít nhất 2 ký tự",
+			"emailInvalid": "Email không hợp lệ",
+			"fileTypeInvalid": "Vui lòng chọn file ảnh hợp lệ",
+			"fileSizeTooBig": "Kích thước file không được vượt quá 5MB"
+		},
+		"messages": {
+			"profileUpdateSuccess": "Cập nhật thông tin cá nhân thành công",
+			"profileUpdateError": "Có lỗi xảy ra khi cập nhật thông tin",
+			"avatarUpdateSuccess": "Cập nhật ảnh đại diện thành công",
+			"avatarUpdateError": "Có lỗi xảy ra khi cập nhật ảnh đại diện"
+		}
 	},
 	"errors": {
 		"titleRequired": "Tiêu đề không được để trống",

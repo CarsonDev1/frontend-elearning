@@ -6,6 +6,7 @@ import { AppProviders } from '@/providers';
 import Footer from '@/app/layout/footer';
 import ScrollToTop from '@/components/scroll-to-top';
 import ClientOnly from '@/components/client-only';
+import Link from 'next/link';
 
 // Load font once outside component
 const poppins = Ruda({
@@ -27,31 +28,18 @@ export const metadata: Metadata = {
 	},
 };
 
-export default function RootLayout({
-	children,
-}: Readonly<{
+interface LanguageLayoutProps {
 	children: React.ReactNode;
-}>) {
+	params: { lang: string };
+}
+
+export default function LanguageLayout({ children, params }: LanguageLayoutProps) {
 	return (
-		<html lang='vi' suppressHydrationWarning>
-			<body className={poppins.className} suppressHydrationWarning>
-				<AppProviders>
-					{/* Header no longer needs ClientOnly wrapper */}
-					<Header />
-
-					{/* Main content */}
-					<main>{children}</main>
-
-					{/* Footer and ScrollToTop are client components */}
-					<ClientOnly>
-						<Footer />
-					</ClientOnly>
-
-					<ClientOnly>
-						<ScrollToTop showBelow={400} right={25} bottom={75} />
-					</ClientOnly>
-				</AppProviders>
-			</body>
-		</html>
+		<div className={poppins.className}>
+			<Header />
+			<main>{children}</main>
+			<Footer />
+			<ScrollToTop showBelow={400} right={25} bottom={75} />
+		</div>
 	);
 }

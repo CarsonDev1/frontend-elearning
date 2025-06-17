@@ -14,9 +14,8 @@ import {
 	Send,
 	ChevronDown,
 } from 'lucide-react';
-import { useState, useMemo, useCallback } from 'react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { useMemo, useCallback } from 'react';
+import NewsletterSubscription from '@/components/newsletter-subscription';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -117,7 +116,6 @@ const ContactItem = ({ icon: Icon, children }: { icon: any; children: React.Reac
 const Footer = () => {
 	const router = useRouter();
 	const pathname = usePathname();
-	const [email, setEmail] = useState('');
 
 	// Extract locale from path once and memoize derived values
 	const pathnameSegments = useMemo(() => pathname.split('/').filter(Boolean), [pathname]);
@@ -149,20 +147,6 @@ const Footer = () => {
 		},
 		[currentLocale, pathnameSegments, router]
 	);
-
-	const handleSubscribe = useCallback(
-		(e: React.FormEvent) => {
-			e.preventDefault();
-			// TODO: Implement newsletter subscription
-			alert(`Subscribed with email: ${email}`);
-			setEmail('');
-		},
-		[email]
-	);
-
-	const handleEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-		setEmail(e.target.value);
-	}, []);
 
 	return (
 		<footer className='relative py-10 overflow-hidden border-t border-primary-100'>
@@ -272,26 +256,14 @@ const Footer = () => {
 
 					{/* Column 4: Newsletter */}
 					<div className='space-y-4'>
-						<h3 className='text-lg font-bold text-primary-700 border-b border-primary-200 pb-2 mb-4'>
-							{t.newsletter}
-						</h3>
-						<p className='text-gray-600 text-sm'>{t.newsletterText}</p>
-						<form onSubmit={handleSubscribe} className='flex mt-4'>
-							<Input
-								type='email'
-								placeholder={t.emailPlaceholder}
-								className='bg-primary-50 border-primary-100 text-gray-700 placeholder:text-gray-400 focus-visible:ring-primary-300'
-								value={email}
-								onChange={handleEmailChange}
-								required
-							/>
-							<Button
-								type='submit'
-								className='ml-2 bg-primary-600 text-white hover:bg-primary-700 border-0'
-							>
-								<Send className='h-4 w-4' />
-							</Button>
-						</form>
+						<NewsletterSubscription
+							variant='minimal'
+							title={t.newsletter}
+							description={t.newsletterText}
+							placeholder={t.emailPlaceholder}
+							buttonText={t.subscribe}
+							defaultLanguage={currentLocale as 'vi' | 'en' | 'jp'}
+						/>
 					</div>
 				</div>
 
@@ -300,9 +272,7 @@ const Footer = () => {
 
 				{/* Footer bottom */}
 				<div className='flex flex-col md:flex-row justify-between items-center'>
-					<div className='text-gray-500 text-sm mb-4 md:mb-0'>
-						© {currentYear} JPE. {t.rightsReserved}
-					</div>
+					<div className='text-gray-500 text-sm mb-4 md:mb-0'>© 2025 JPE. {t.rightsReserved}</div>
 					<div className='flex space-x-6 text-sm text-gray-500'>
 						<Link href={`/${currentLocale}/privacy`} className='hover:text-primary-700 transition-colors'>
 							{t.privacy}

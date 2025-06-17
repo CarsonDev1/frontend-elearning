@@ -11,6 +11,23 @@ export interface CreatePaymentRequest {
   cancelRedirectUrl: string;
 }
 
+export interface GuestPurchaseRequest {
+  // Guest user information
+  fullName: string;
+  email: string;
+  phoneNumber?: string;
+  subscribeNewsletter?: boolean;
+
+  // Payment information
+  amount: number;
+  orderInfo: string;
+  courseId?: number;
+  comboId?: number;
+  voucherCode?: string;
+  successRedirectUrl: string;
+  cancelRedirectUrl: string;
+}
+
 export interface CreatePaymentResponse {
   paymentUrl: string;
   transactionId: string;
@@ -42,9 +59,7 @@ export interface PaymentVerificationResponse {
 
 const PaymentService = {
   /**
-   * Creates a payment and returns the VNPay URL
-   * @param paymentData Payment request data
-   * @returns Payment response with payment URL
+   * Creates a payment for authenticated users
    */
   createPayment: async (paymentData: CreatePaymentRequest): Promise<CreatePaymentResponse> => {
     const response = await api.post<CreatePaymentResponse>('/payments/create', paymentData);
@@ -52,9 +67,15 @@ const PaymentService = {
   },
 
   /**
-   * Processes the VNPay return callback with query parameters
-   * @param queryParams Query parameters from VNPay callback
-   * @returns Payment verification response
+   * Creates a payment for guest users (non-authenticated)
+   */
+  createGuestPayment: async (paymentData: GuestPurchaseRequest): Promise<CreatePaymentResponse> => {
+    const response = await api.post<CreatePaymentResponse>('/guest-purchase/create-payment', paymentData);
+    return response.data;
+  },
+
+  /**
+   * Processes the VNPay return callback
    */
   processVnpayReturn: async (queryParams: VnpayReturnParams): Promise<PaymentVerificationResponse> => {
     const response = await api.get<PaymentVerificationResponse>('/payments/vnpay-return', {

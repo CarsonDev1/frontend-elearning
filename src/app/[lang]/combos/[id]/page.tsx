@@ -184,22 +184,29 @@ export default async function ComboDetailsPage({ params: { id, lang } }: PagePro
 							</div>
 
 							<div className='flex flex-wrap gap-4'>
-								<Button
-									className='bg-gradient-to-r from-secondary to-secondary-600 hover:from-secondary-600 hover:to-secondary-700 text-white px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105'
-									size='lg'
-								>
-									<span className='flex items-center justify-center gap-2'>
-										{comboDict.enrollNow || 'Đăng ký ngay'}
-										<svg className='w-5 h-5' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-											<path
-												strokeLinecap='round'
-												strokeLinejoin='round'
-												strokeWidth={2}
-												d='M13 7l5 5m0 0l-5 5m5-5H6'
-											/>
-										</svg>
-									</span>
-								</Button>
+								<Link href={`/${lang}/combos/${combo.id}/purchase`} className='block'>
+									<Button
+										className='bg-gradient-to-r from-secondary to-secondary-600 hover:from-secondary-600 hover:to-secondary-700 text-white px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105'
+										size='lg'
+									>
+										<span className='flex items-center justify-center gap-2'>
+											{comboDict.buyNow || 'Mua ngay'}
+											<svg
+												className='w-5 h-5'
+												fill='none'
+												viewBox='0 0 24 24'
+												stroke='currentColor'
+											>
+												<path
+													strokeLinecap='round'
+													strokeLinejoin='round'
+													strokeWidth={2}
+													d='M13 7l5 5m0 0l-5 5m5-5H6'
+												/>
+											</svg>
+										</span>
+									</Button>
+								</Link>
 
 								<Button
 									variant='superOutline'

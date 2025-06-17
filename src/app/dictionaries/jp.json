@@ -246,6 +246,105 @@
 		"errorDescription": "コースの読み込み中にエラーが発生しました。もう一度お試しください。",
 		"retry": "再試行"
 	},
+	"profile": {
+		"welcomeMessage": "ようこそ、{name}さん！ 👋",
+		"welcomeSubtitle": "日本語学習の旅を続けましょう",
+		"accessDenied": "アクセスが拒否されました",
+		"loginRequired": "このページにアクセスするには学生アカウントでログインしてください。",
+		"stats": {
+			"enrolledCourses": "登録済みコース",
+			"averageProgress": "平均進捗",
+			"completedCourses": "完了済みコース",
+			"totalSpent": "総支出額"
+		},
+		"tabs": {
+			"overview": "概要",
+			"courses": "コース",
+			"payments": "支払い",
+			"profile": "プロフィール"
+		},
+		"overview": {
+			"recentCourses": "最近のコース",
+			"recentCoursesDesc": "中断したところから学習を続ける",
+			"noCoursesInProgress": "現在進行中のコースはありません",
+			"percentComplete": "% 完了",
+			"continue": "続ける",
+			"achievements": "実績",
+			"achievementsDesc": "あなたが達成したマイルストーン",
+			"activeLearner": "アクティブ学習者",
+			"activeLearnerDesc": "{count}コースを学習中",
+			"completer": "完了者",
+			"completerDesc": "{count}コースを完了",
+			"persistent": "継続学習者",
+			"persistentDesc": "平均進捗率50%以上"
+		},
+		"courses": {
+			"inProgress": "進行中",
+			"completed": "完了済み",
+			"continueLearning": "学習を続ける",
+			"reviewCourse": "復習する",
+			"certificate": "修了証"
+		},
+		"payments": {
+			"paymentHistory": "決済履歴",
+			"paymentHistoryDesc": "すべての決済取引",
+			"noTransactions": "取引はまだありません",
+			"transaction": "取引",
+			"loading": "読み込み中...",
+			"status": {
+				"completed": "完了",
+				"pending": "処理中",
+				"failed": "失敗",
+				"cancelled": "キャンセル済み"
+			}
+		},
+		"info": {
+			"personalInfo": "個人情報",
+			"personalInfoDesc": "アカウント情報の管理",
+			"fullName": "氏名",
+			"email": "メール",
+			"phoneNumber": "電話番号",
+			"phoneNotUpdated": "未更新",
+			"joinDate": "参加日",
+			"editProfile": "プロフィール編集"
+		}
+	},
+	"profileEdit": {
+		"title": "プロフィール編集",
+		"subtitle": "個人情報を更新",
+		"backToProfile": "戻る",
+		"avatar": {
+			"title": "プロフィール画像",
+			"description": "プロフィール画像を更新",
+			"clickToChange": "カメラアイコンをクリックして画像を変更",
+			"fileRequirements": "最大5MB、形式：JPG、PNG、GIF"
+		},
+		"form": {
+			"title": "個人情報",
+			"description": "基本情報を更新",
+			"fullNameLabel": "氏名 *",
+			"fullNamePlaceholder": "氏名を入力",
+			"emailLabel": "メール *",
+			"emailPlaceholder": "メールアドレスを入力",
+			"phoneLabel": "電話番号",
+			"phonePlaceholder": "電話番号を入力",
+			"updateButton": "情報を更新",
+			"updating": "更新中...",
+			"cancelButton": "キャンセル"
+		},
+		"validation": {
+			"fullNameRequired": "氏名は2文字以上で入力してください",
+			"emailInvalid": "無効なメールアドレスです",
+			"fileTypeInvalid": "有効な画像ファイルを選択してください",
+			"fileSizeTooBig": "ファイルサイズは5MBを超えることはできません"
+		},
+		"messages": {
+			"profileUpdateSuccess": "個人情報が正常に更新されました",
+			"profileUpdateError": "情報更新中にエラーが発生しました",
+			"avatarUpdateSuccess": "プロフィール画像が正常に更新されました",
+			"avatarUpdateError": "プロフィール画像更新中にエラーが発生しました"
+		}
+	},
 	"errors": {
 		"titleRequired": "タイトルは必須です",
 		"contentRequired": "内容は必須です",
