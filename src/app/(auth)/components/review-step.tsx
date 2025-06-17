@@ -76,7 +76,7 @@ export default function ReviewStep({ onContinue, onBack }: ReviewStepProps) {
 					</p>
 
 					<div className='flex gap-3'>
-						<Button type='button' variant='outline' className='flex-1' onClick={onBack}>
+						<Button type='button' variant='superOutline' className='flex-1' onClick={onBack}>
 							Quay lại
 						</Button>
 						<Button className='flex-1 bg-orange-500 hover:bg-orange-600' onClick={onContinue}>

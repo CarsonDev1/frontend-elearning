@@ -17,7 +17,7 @@ import CourseSkeleton from '@/app/pages/home/course-skeleton';
 import CourseService from '@/services/course-service';
 import { formatPrice } from '@/lib/utils';
 
-const CoursesPage = () => {
+const CoursesPage = ({ dictionary, currentLocale }: { dictionary: any; currentLocale: string }) => {
 	const params = useParams();
 	const searchParams = useSearchParams();
 	const router = useRouter();
@@ -74,10 +74,10 @@ const CoursesPage = () => {
 					selectedSort === 'price_high'
 						? 'desc'
 						: selectedSort === 'price_low'
-						? 'asc'
-						: selectedSort === 'oldest'
-						? 'asc'
-						: 'desc';
+							? 'asc'
+							: selectedSort === 'oldest'
+								? 'asc'
+								: 'desc';
 
 				const response = await CourseService.getPublicCourses(page, 12, sortBy, direction);
 
@@ -362,54 +362,54 @@ const CoursesPage = () => {
 										searchTerm ||
 										priceRange[0] > 0 ||
 										priceRange[1] < 5000000) && (
-										<div className='mb-6'>
-											<h4 className='font-medium text-gray-900 mb-3'>
-												{dict?.courses?.activeFilters || 'Active Filters'}
-											</h4>
-											<div className='flex flex-wrap gap-2'>
-												{searchTerm && (
-													<Badge
-														variant='outline'
-														className='flex items-center gap-1 px-3 py-1'
-													>
-														{searchTerm}
-														<X
-															className='h-3 w-3 cursor-pointer'
-															onClick={() => setSearchTerm('')}
-														/>
-													</Badge>
-												)}
+											<div className='mb-6'>
+												<h4 className='font-medium text-gray-900 mb-3'>
+													{dict?.courses?.activeFilters || 'Active Filters'}
+												</h4>
+												<div className='flex flex-wrap gap-2'>
+													{searchTerm && (
+														<Badge
+															variant='outline'
+															className='flex items-center gap-1 px-3 py-1'
+														>
+															{searchTerm}
+															<X
+																className='h-3 w-3 cursor-pointer'
+																onClick={() => setSearchTerm('')}
+															/>
+														</Badge>
+													)}
 
-												{selectedLevels.map((level) => (
-													<Badge
-														key={level}
-														variant='outline'
-														className='flex items-center gap-1 px-3 py-1'
-													>
-														{level}
-														<X
-															className='h-3 w-3 cursor-pointer'
-															onClick={() => toggleLevel(level)}
-														/>
-													</Badge>
-												))}
+													{selectedLevels.map((level) => (
+														<Badge
+															key={level}
+															variant='outline'
+															className='flex items-center gap-1 px-3 py-1'
+														>
+															{level}
+															<X
+																className='h-3 w-3 cursor-pointer'
+																onClick={() => toggleLevel(level)}
+															/>
+														</Badge>
+													))}
 
-												{(priceRange[0] > 0 || priceRange[1] < 5000000) && (
-													<Badge
-														variant='outline'
-														className='flex items-center gap-1 px-3 py-1'
-													>
-														{formatPriceRange(priceRange[0])} -{' '}
-														{formatPriceRange(priceRange[1])}
-														<X
-															className='h-3 w-3 cursor-pointer'
-															onClick={() => setPriceRange([0, 5000000])}
-														/>
-													</Badge>
-												)}
+													{(priceRange[0] > 0 || priceRange[1] < 5000000) && (
+														<Badge
+															variant='outline'
+															className='flex items-center gap-1 px-3 py-1'
+														>
+															{formatPriceRange(priceRange[0])} -{' '}
+															{formatPriceRange(priceRange[1])}
+															<X
+																className='h-3 w-3 cursor-pointer'
+																onClick={() => setPriceRange([0, 5000000])}
+															/>
+														</Badge>
+													)}
+												</div>
 											</div>
-										</div>
-									)}
+										)}
 								</div>
 							</div>
 
@@ -472,11 +472,10 @@ const CoursesPage = () => {
 								{/* Courses Grid/List */}
 								{isCoursesLoading ? (
 									<div
-										className={`grid ${
-											viewMode === 'grid'
+										className={`grid ${viewMode === 'grid'
 												? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
 												: 'grid-cols-1'
-										} gap-6`}
+											} gap-6`}
 									>
 										{[1, 2, 3, 4, 5, 6].map((i) => (
 											<CourseSkeleton key={i} />
@@ -484,11 +483,10 @@ const CoursesPage = () => {
 									</div>
 								) : coursesData?.content?.length && coursesData?.content?.length > 0 ? (
 									<div
-										className={`grid ${
-											viewMode === 'grid'
+										className={`grid ${viewMode === 'grid'
 												? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
 												: 'grid-cols-1'
-										} gap-6`}
+											} gap-6`}
 									>
 										{coursesData.content.map((course: any, index: number) => (
 											<CourseCard
