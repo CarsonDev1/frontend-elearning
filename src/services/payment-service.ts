@@ -59,18 +59,12 @@ export interface PaymentVerificationResponse {
 
 const PaymentService = {
   /**
-   * Creates a payment for authenticated users
+   * Creates a payment for authenticated users ONLY
    */
   createPayment: async (paymentData: CreatePaymentRequest): Promise<CreatePaymentResponse> => {
+    console.log('Calling createPayment API with data:', paymentData);
     const response = await api.post<CreatePaymentResponse>('/payments/create', paymentData);
-    return response.data;
-  },
-
-  /**
-   * Creates a payment for guest users (non-authenticated)
-   */
-  createGuestPayment: async (paymentData: GuestPurchaseRequest): Promise<CreatePaymentResponse> => {
-    const response = await api.post<CreatePaymentResponse>('/guest-purchase/create-payment', paymentData);
+    console.log('Payment API response:', response.data);
     return response.data;
   },
 

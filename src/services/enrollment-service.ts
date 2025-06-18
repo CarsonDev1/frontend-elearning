@@ -49,30 +49,50 @@ export interface Course {
   enrolled: boolean;
 }
 
-export interface Enrollment {
+export interface EnrollmentResponse {
   id: number;
-  student: Student;
-  course: Course;
+  student: {
+    id: number;
+    fullName: string;
+    email: string;
+    avatarUrl?: string;
+  };
+  course: {
+    id: number;
+    title: string;
+    thumbnailUrl?: string;
+  };
   progressPercentage: number;
   completedLessons: number;
-  lastAccessedLessonId?: number | null;
-  finalScore?: number | null;
-  pricePaid: number;
-  certificateId?: number | null;
-  certificateUrl?: string | null;
-  expiryDate: string;
-  comboId?: number | null;
-  voucherCode?: string;
+  isCompleted: boolean;
   enrolledAt: string;
-  completedAt?: string | null;
-  completed: boolean;
+  completedAt?: string;
 }
 
 const EnrollmentService = {
-  getMyEnrollments: async (): Promise<Enrollment[]> => {
-    const response = await api.get<Enrollment[]>('/enrollments/my-enrollments');
+  /**
+   * Get all enrollments for current user
+   */
+  getMyEnrollments: async (): Promise<EnrollmentResponse[]> => {
+    const response = await api.get<EnrollmentResponse[]>('/enrollments/my-enrollments');
     return response.data;
-  }
+  },
+
+  /**
+   * Check if user is enrolled in a specific combo
+   */
+  checkComboEnrollment: async (comboId: number): Promise<boolean> => {
+    const response = await api.get<boolean>(`/enrollments/check-combo/${comboId}`);
+    return response.data;
+  },
+
+  /**
+   * Check if user is enrolled in a specific course
+   */
+  checkCourseEnrollment: async (courseId: number): Promise<boolean> => {
+    const response = await api.get<boolean>(`/enrollments/check-course/${courseId}`);
+    return response.data;
+  },
 };
 
 export default EnrollmentService;

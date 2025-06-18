@@ -3,47 +3,21 @@
 import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import Image from 'next/image';
 import Link from 'next/link';
-import {
-	ArrowLeftIcon,
-	CreditCardIcon,
-	UserIcon,
-	MailIcon,
-	PhoneIcon,
-	ShoppingCartIcon,
-	CheckIcon,
-	PackageIcon,
-} from 'lucide-react';
+import { ArrowLeftIcon, CreditCardIcon, CheckIcon, PackageIcon } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from '@/hooks/use-toast';
 import { useDictionary } from '@/hooks/use-dictionary';
 import { safeString, safeImageUrl, formatPrice } from '@/lib/utils';
 import ClientOnly from '@/components/client-only';
 
-import ComboService from '@/services/combo-service';
-import PaymentService from '@/services/payment-service';
-
-// Form validation schema
-const purchaseSchema = z.object({
-	fullName: z.string().min(2, 'Họ tên phải có ít nhất 2 ký tự'),
-	email: z.string().email('Email không hợp lệ'),
-	phoneNumber: z.string().min(10, 'Số điện thoại phải có ít nhất 10 số').optional(),
-	agreeTerms: z.boolean().refine((val) => val === true, 'Bạn phải đồng ý với điều khoản sử dụng'),
-	subscribeNewsletter: z.boolean().optional(),
-});
-
-type PurchaseFormData = z.infer<typeof purchaseSchema>;
+import PaymentService, { CreatePaymentRequest } from '@/services/payment-service';
 
 // Fallback dictionary
 const fallbackDict = {
@@ -70,6 +44,9 @@ const fallbackDict = {
 		home: 'Trang chủ',
 		back: 'Quay lại',
 	},
+	profile: {
+		welcomeMessage: 'Xin chào, {name}',
+	},
 };
 
 function PurchaseContent() {
@@ -78,10 +55,18 @@ function PurchaseContent() {
 	const comboId = params.id as string;
 	const lang = params.lang as string;
 	const [isProcessing, setIsProcessing] = useState(false);
+	const { user, isAuthenticated, isLoading: authLoading } = useAuth();
 
 	// Dictionary for translations
 	const { data: dictData } = useDictionary(lang);
 	const dict = dictData || fallbackDict;
+
+	// Redirect to login if not authenticated
+	React.useEffect(() => {
+		if (!authLoading && !isAuthenticated) {
+			router.push(`/${lang}/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+		}
+	}, [isAuthenticated, authLoading, router, lang]);
 
 	// Fetch combo details
 	const {
@@ -90,65 +75,85 @@ function PurchaseContent() {
 		error: comboError,
 	} = useQuery({
 		queryKey: ['combo', comboId],
-		queryFn: () =>
-			fetch(`/api/combos/${comboId}`).then((res) => {
-				if (!res.ok) throw new Error('Failed to fetch combo');
-				return res.json();
-			}),
-		enabled: !!comboId,
-	});
-
-	// Form setup
-	const form = useForm<PurchaseFormData>({
-		resolver: zodResolver(purchaseSchema),
-		defaultValues: {
-			fullName: '',
-			email: '',
-			phoneNumber: '',
-			agreeTerms: false,
-			subscribeNewsletter: false,
+		queryFn: async () => {
+			console.log('Fetching combo with ID:', comboId);
+			const response = await fetch(`/api/combos/${comboId}`);
+			if (!response.ok) {
+				throw new Error(`Failed to fetch combo: ${response.status}`);
+			}
+			const data = await response.json();
+			console.log('Combo data received:', data);
+			return data;
 		},
+		enabled: !!comboId && isAuthenticated,
+		retry: 2,
 	});
 
-	// Payment mutation
+	// Payment mutation - SỬ DỤNG createPayment CHO USER ĐÃ ĐĂNG NHẬP
 	const paymentMutation = useMutation({
-		mutationFn: async (data: PurchaseFormData) => {
+		mutationFn: async () => {
+			console.log('Starting payment process for combo:', combo);
 			const currentUrl = window.location.origin;
 
-			// Prepare guest payment data
-			const guestPaymentData: GuestPurchaseRequest = {
-				fullName: data.fullName,
-				email: data.email,
-				phoneNumber: data.phoneNumber,
-				subscribeNewsletter: data.subscribeNewsletter,
+			if (!combo) {
+				throw new Error('Combo data not available');
+			}
+
+			// Prepare payment data for authenticated user
+			const paymentData: CreatePaymentRequest = {
 				amount: combo.discountPrice || combo.price || 0,
-				orderInfo: `Mua combo: ${combo.title} - ${data.fullName} (${data.email})`,
+				orderInfo: `Mua combo: ${combo.title}`,
 				comboId: parseInt(comboId),
 				successRedirectUrl: `${currentUrl}/${lang}/payment/success`,
-				cancelRedirectUrl: `${currentUrl}/${lang}/combos/${comboId}/purchase`,
+				cancelRedirectUrl: `${currentUrl}/${lang}/combos/${comboId}`,
 			};
 
-			// Use guest payment service instead of regular payment service
-			return PaymentService.createGuestPayment(guestPaymentData);
+			console.log('Payment data:', paymentData);
+
+			// SỬ DỤNG createPayment CHO USER ĐÃ ĐĂNG NHẬP
+			return PaymentService.createPayment(paymentData);
 		},
 		onSuccess: (response) => {
+			console.log('Payment created successfully:', response);
 			// Redirect to VNPay
 			window.location.href = response.paymentUrl;
 		},
 		onError: (error: any) => {
+			console.error('Payment error:', error);
+			const errorMessage =
+				error.response?.data?.message || error.message || 'Có lỗi xảy ra khi tạo thanh toán. Vui lòng thử lại.';
 			toast({
 				title: 'Lỗi thanh toán',
-				description: error.response?.data?.message || 'Có lỗi xảy ra khi tạo thanh toán. Vui lòng thử lại.',
+				description: errorMessage,
 				variant: 'destructive',
 			});
 			setIsProcessing(false);
 		},
 	});
 
-	const onSubmit = (data: PurchaseFormData) => {
+	const handlePurchase = () => {
+		console.log('Purchase button clicked');
 		setIsProcessing(true);
-		paymentMutation.mutate(data);
+		paymentMutation.mutate();
 	};
+
+	// Show loading if auth is loading
+	if (authLoading) {
+		return (
+			<div className='flex items-center justify-center min-h-screen'>
+				<div className='animate-spin rounded-full h-32 w-32 border-b-2 border-primary'></div>
+			</div>
+		);
+	}
+
+	// Redirect if not authenticated
+	if (!isAuthenticated) {
+		return (
+			<div className='flex items-center justify-center min-h-screen'>
+				<div className='animate-spin rounded-full h-32 w-32 border-b-2 border-primary'></div>
+			</div>
+		);
+	}
 
 	if (comboLoading) {
 		return (
@@ -159,13 +164,17 @@ function PurchaseContent() {
 	}
 
 	if (comboError || !combo) {
+		console.error('Combo error:', comboError);
 		return (
 			<div className='min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4'>
-				<div className='w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6'>
-					<PackageIcon className='w-12 h-12 text-gray-400' />
+				<div className='w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mb-6'>
+					<PackageIcon className='w-12 h-12 text-red-400' />
 				</div>
 				<h1 className='text-3xl font-bold text-gray-800 mb-3'>{dict.combos.notFound}</h1>
-				<p className='text-gray-600 text-center max-w-md mb-8'>{dict.combos.notFoundMessage}</p>
+				<p className='text-gray-600 text-center max-w-md mb-4'>{dict.combos.notFoundMessage}</p>
+				<p className='text-red-600 text-center max-w-md mb-8'>
+					{comboError?.message || 'Không thể tải thông tin combo'}
+				</p>
 				<Link href={`/${lang}/combos`}>
 					<Button className='bg-primary hover:bg-primary/90'>{dict.courses.viewAllCourses}</Button>
 				</Link>
@@ -190,8 +199,8 @@ function PurchaseContent() {
 							</Button>
 						</Link>
 						<div>
-							<h1 className='text-2xl font-bold text-gray-900'>Mua combo</h1>
-							<p className='text-gray-600'>Hoàn tất thông tin để mua combo</p>
+							<h1 className='text-2xl font-bold text-gray-900'>Thanh toán combo</h1>
+							<p className='text-gray-600'>Xác nhận đơn hàng của bạn</p>
 						</div>
 					</div>
 				</div>
@@ -199,259 +208,173 @@ function PurchaseContent() {
 
 			<div className='container mx-auto px-4 py-8'>
 				<div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
-					{/* Left Column - Form */}
+					{/* Left Column - Order Summary */}
 					<div className='lg:col-span-2'>
 						<Card>
 							<CardHeader>
 								<CardTitle className='flex items-center gap-2'>
-									<UserIcon className='h-5 w-5' />
-									Thông tin người mua
+									<PackageIcon className='h-5 w-5' />
+									Thông tin đơn hàng
 								</CardTitle>
-								<CardDescription>
-									Vui lòng cung cấp thông tin để chúng tôi có thể liên hệ và cung cấp quyền truy cập
-									khóa học
-								</CardDescription>
+								<CardDescription>Xác nhận thông tin combo bạn muốn mua</CardDescription>
 							</CardHeader>
 							<CardContent>
-								<Form {...form}>
-									<form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
-										<FormField
-											control={form.control}
-											name='fullName'
-											render={({ field }) => (
-												<FormItem>
-													<FormLabel>Họ và tên *</FormLabel>
-													<FormControl>
-														<Input
-															placeholder='Nhập họ và tên đầy đủ'
-															{...field}
-															disabled={isProcessing}
-														/>
-													</FormControl>
-													<FormMessage />
-												</FormItem>
-											)}
-										/>
+								<div className='space-y-6'>
+									{/* User Greeting */}
+									{user && (
+										<div className='p-4 bg-primary/5 rounded-lg'>
+											<p className='text-lg font-medium'>
+												{dict.profile?.welcomeMessage?.replace('{name}', user.fullName || '') ||
+													`Xin chào, ${user.fullName || 'bạn'}`}
+											</p>
+											<p className='text-sm text-gray-600'>
+												Đơn hàng sẽ được liên kết với tài khoản của bạn:{' '}
+												<span className='font-medium'>{user.email}</span>
+											</p>
+										</div>
+									)}
 
-										<FormField
-											control={form.control}
-											name='email'
-											render={({ field }) => (
-												<FormItem>
-													<FormLabel>Email *</FormLabel>
-													<FormControl>
-														<Input
-															type='email'
-															placeholder='Nhập địa chỉ email'
-															{...field}
-															disabled={isProcessing}
-														/>
-													</FormControl>
-													<FormMessage />
-													<p className='text-sm text-gray-500'>
-														Chúng tôi sẽ gửi thông tin đăng nhập và quyền truy cập khóa học
-														qua email này
-													</p>
-												</FormItem>
-											)}
-										/>
-
-										<FormField
-											control={form.control}
-											name='phoneNumber'
-											render={({ field }) => (
-												<FormItem>
-													<FormLabel>Số điện thoại</FormLabel>
-													<FormControl>
-														<Input
-															type='tel'
-															placeholder='Nhập số điện thoại (tùy chọn)'
-															{...field}
-															disabled={isProcessing}
-														/>
-													</FormControl>
-													<FormMessage />
-												</FormItem>
-											)}
-										/>
-
-										<Separator />
-
-										<div className='space-y-4'>
-											<FormField
-												control={form.control}
-												name='agreeTerms'
-												render={({ field }) => (
-													<FormItem className='flex flex-row items-start space-x-3 space-y-0'>
-														<FormControl>
-															<Checkbox
-																checked={field.value}
-																onCheckedChange={field.onChange}
-																disabled={isProcessing}
-															/>
-														</FormControl>
-														<div className='space-y-1 leading-none'>
-															<FormLabel className='text-sm'>
-																Tôi đồng ý với{' '}
-																<Link
-																	href={`/${lang}/terms`}
-																	className='text-primary hover:underline'
-																>
-																	điều khoản sử dụng
-																</Link>{' '}
-																và{' '}
-																<Link
-																	href={`/${lang}/privacy`}
-																	className='text-primary hover:underline'
-																>
-																	chính sách bảo mật
-																</Link>
-															</FormLabel>
-															<FormMessage />
-														</div>
-													</FormItem>
-												)}
-											/>
-
-											<FormField
-												control={form.control}
-												name='subscribeNewsletter'
-												render={({ field }) => (
-													<FormItem className='flex flex-row items-start space-x-3 space-y-0'>
-														<FormControl>
-															<Checkbox
-																checked={field.value}
-																onCheckedChange={field.onChange}
-																disabled={isProcessing}
-															/>
-														</FormControl>
-														<div className='space-y-1 leading-none'>
-															<FormLabel className='text-sm'>
-																Đăng ký nhận tin tức và ưu đãi đặc biệt từ JPE
-															</FormLabel>
-														</div>
-													</FormItem>
-												)}
+									{/* Combo Info */}
+									<div className='flex gap-6 py-4 border-t border-b'>
+										<div className='relative w-32 h-32 rounded-lg overflow-hidden flex-shrink-0'>
+											<Image
+												src={safeImageUrl(combo.thumbnailUrl, '/images/default-combo.jpg')}
+												alt={combo.title}
+												fill
+												className='object-cover'
 											/>
 										</div>
+										<div className='flex-1'>
+											<Badge variant='secondary' className='mb-2'>
+												<PackageIcon className='w-3 h-3 mr-1' />
+												{dict.combos.comboLabel || 'Combo'}
+											</Badge>
+											<h3 className='text-xl font-semibold leading-tight mb-2'>{combo.title}</h3>
+											<p className='text-gray-600 mb-3 line-clamp-2'>{combo.description}</p>
 
-										<Alert>
-											<CheckIcon className='h-4 w-4' />
-											<AlertDescription>
-												Sau khi thanh toán thành công, chúng tôi sẽ tự động tạo tài khoản cho
-												bạn và gửi thông tin đăng nhập qua email. Bạn có thể ngay lập tức truy
-												cập tất cả khóa học trong combo này.
-											</AlertDescription>
-										</Alert>
+											<div className='flex flex-wrap gap-4'>
+												<div className='text-sm text-gray-600'>
+													<span className='font-medium'>
+														{combo.courseCount || combo.courses?.length || 0}
+													</span>{' '}
+													khóa học
+												</div>
+												<div className='text-sm text-gray-600'>
+													<span className='font-medium'>{combo.totalDuration || '40h'}</span>{' '}
+													thời lượng
+												</div>
+												<div className='text-sm text-gray-600'>
+													Truy cập <span className='font-medium'>trọn đời</span>
+												</div>
+											</div>
+										</div>
+									</div>
 
-										<Button
-											type='submit'
-											className='w-full bg-gradient-to-r from-secondary to-secondary-600 hover:from-secondary-600 hover:to-secondary-700 py-6 text-lg'
-											disabled={isProcessing || !form.formState.isValid}
-										>
-											{isProcessing ? (
-												<>
-													<div className='animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2'></div>
-													{dict.combos.processing}
-												</>
-											) : (
-												<>
-													<CreditCardIcon className='h-5 w-5 mr-2' />
-													Thanh toán ngay -{' '}
-													{formatPrice(combo.discountPrice || combo.price || 0)}
-												</>
+									{/* Payment Summary */}
+									<div className='space-y-3'>
+										<h4 className='font-medium'>Chi tiết thanh toán</h4>
+										<div className='space-y-2'>
+											{hasDiscount && (
+												<div className='flex justify-between items-center text-gray-500'>
+													<span>Giá gốc</span>
+													<span className='line-through'>
+														{formatPrice(combo.originalPrice)}
+													</span>
+												</div>
 											)}
-										</Button>
-									</form>
-								</Form>
+											{hasDiscount && (
+												<div className='flex justify-between items-center text-green-600'>
+													<span>Giảm giá ({savingsPercentage}%)</span>
+													<span>-{formatPrice(savings)}</span>
+												</div>
+											)}
+											<div className='flex justify-between items-center text-lg font-bold pt-2 border-t'>
+												<span>Tổng cộng</span>
+												<span className='text-secondary'>
+													{formatPrice(combo.discountPrice || combo.price || 0)}
+												</span>
+											</div>
+										</div>
+									</div>
+
+									<Alert>
+										<CheckIcon className='h-4 w-4' />
+										<AlertDescription className='text-sm'>
+											{dict.courses.moneyBackGuarantee || 'Đảm bảo hoàn tiền trong 30 ngày'}
+										</AlertDescription>
+									</Alert>
+
+									<Button
+										onClick={handlePurchase}
+										className='w-full bg-gradient-to-r from-secondary to-secondary-600 hover:from-secondary-600 hover:to-secondary-700 py-6 text-lg'
+										disabled={isProcessing}
+									>
+										{isProcessing ? (
+											<>
+												<div className='animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2'></div>
+												{dict.combos.processing || 'Đang xử lý...'}
+											</>
+										) : (
+											<>
+												<CreditCardIcon className='h-5 w-5 mr-2' />
+												Thanh toán ngay - {formatPrice(combo.discountPrice || combo.price || 0)}
+											</>
+										)}
+									</Button>
+								</div>
 							</CardContent>
 						</Card>
 					</div>
 
-					{/* Right Column - Order Summary */}
+					{/* Right Column - What You Get */}
 					<div className='lg:col-span-1'>
 						<Card className='sticky top-6'>
 							<CardHeader>
-								<CardTitle>Tóm tắt đơn hàng</CardTitle>
+								<CardTitle>Bạn sẽ nhận được gì</CardTitle>
 							</CardHeader>
-							<CardContent className='space-y-6'>
-								{/* Combo Info */}
-								<div className='flex gap-4'>
-									<div className='relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0'>
-										<Image
-											src={safeImageUrl(combo.thumbnailUrl, '/images/default-combo.jpg')}
-											alt={combo.title}
-											fill
-											className='object-cover'
-										/>
+							<CardContent className='space-y-4'>
+								<div className='flex items-start gap-3'>
+									<CheckIcon className='h-5 w-5 text-green-500 mt-0.5' />
+									<div>
+										<p className='font-medium'>
+											Truy cập đầy đủ {combo.courseCount || combo.courses?.length || 0} khóa học
+										</p>
+										<p className='text-sm text-gray-600'>Tất cả nội dung, bài tập và tài nguyên</p>
 									</div>
-									<div className='flex-1'>
-										<Badge variant='secondary' className='mb-2'>
-											<PackageIcon className='w-3 h-3 mr-1' />
-											{dict.combos.comboLabel}
-										</Badge>
-										<h3 className='font-semibold text-sm leading-tight'>{combo.title}</h3>
+								</div>
+
+								<div className='flex items-start gap-3'>
+									<CheckIcon className='h-5 w-5 text-green-500 mt-0.5' />
+									<div>
+										<p className='font-medium'>Học không giới hạn thời gian</p>
+										<p className='text-sm text-gray-600'>Truy cập trọn đời với mọi cập nhật</p>
+									</div>
+								</div>
+
+								<div className='flex items-start gap-3'>
+									<CheckIcon className='h-5 w-5 text-green-500 mt-0.5' />
+									<div>
+										<p className='font-medium'>Hỗ trợ từ giảng viên</p>
+										<p className='text-sm text-gray-600'>Giải đáp thắc mắc và hỗ trợ học tập</p>
+									</div>
+								</div>
+
+								<div className='flex items-start gap-3'>
+									<CheckIcon className='h-5 w-5 text-green-500 mt-0.5' />
+									<div>
+										<p className='font-medium'>Chứng chỉ hoàn thành</p>
+										<p className='text-sm text-gray-600'>Sau khi hoàn thành tất cả khóa học</p>
 									</div>
 								</div>
 
 								<Separator />
 
-								{/* Course Count */}
-								<div className='flex justify-between items-center'>
-									<span className='text-gray-600'>Số khóa học</span>
-									<span className='font-semibold'>
-										{combo.courseCount || combo.courses?.length || 0} khóa học
-									</span>
-								</div>
-
-								{/* Duration */}
-								<div className='flex justify-between items-center'>
-									<span className='text-gray-600'>{dict.courses.duration}</span>
-									<span className='font-semibold'>{combo.totalDuration || '40h'}</span>
-								</div>
-
-								{/* Access */}
-								<div className='flex justify-between items-center'>
-									<span className='text-gray-600'>{dict.courses.access}</span>
-									<span className='font-semibold'>{dict.courses.fullLifetimeAccess}</span>
-								</div>
-
-								{/* Certificate */}
-								<div className='flex justify-between items-center'>
-									<span className='text-gray-600'>{dict.courses.certificate}</span>
-									<span className='font-semibold'>{combo.hasCertificate ? 'Có' : 'Không'}</span>
-								</div>
-
-								<Separator />
-
-								{/* Pricing */}
-								<div className='space-y-2'>
-									{hasDiscount && (
-										<div className='flex justify-between items-center text-gray-500'>
-											<span>Giá gốc</span>
-											<span className='line-through'>{formatPrice(combo.originalPrice)}</span>
-										</div>
-									)}
-									{hasDiscount && (
-										<div className='flex justify-between items-center text-green-600'>
-											<span>Giảm giá ({savingsPercentage}%)</span>
-											<span>-{formatPrice(savings)}</span>
-										</div>
-									)}
-									<div className='flex justify-between items-center text-lg font-bold'>
-										<span>Tổng cộng</span>
-										<span className='text-secondary'>
-											{formatPrice(combo.discountPrice || combo.price || 0)}
-										</span>
+								<div className='text-sm text-gray-600'>
+									<p className='mb-2'>Phương thức thanh toán:</p>
+									<div className='flex items-center gap-2'>
+										<span>💳 VNPay - Thẻ ATM/Visa/Master/JCB</span>
 									</div>
 								</div>
-
-								<Alert>
-									<CheckIcon className='h-4 w-4' />
-									<AlertDescription className='text-sm'>
-										{dict.courses.moneyBackGuarantee}
-									</AlertDescription>
-								</Alert>
 							</CardContent>
 						</Card>
 					</div>

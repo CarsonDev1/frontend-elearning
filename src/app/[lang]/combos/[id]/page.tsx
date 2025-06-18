@@ -1,66 +1,121 @@
-import { getDictionary } from '../../../../lib/dictionary';
-import type { Locale } from '../../../../../i18n-config';
-import { API_BASE_URL } from '../../../../lib/api';
+'use client';
+
+import React from 'react';
+import { useParams } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Clock, Users, Star, Package, Percent, Check, Award, BookOpen } from 'lucide-react';
-import { safeString, safeImageUrl, safeArrayLength, formatPrice } from '../../../../lib/utils';
+import { Clock, Users, Star, Package, Percent, Check, Award, BookOpen, CheckCircle } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { safeString, safeImageUrl, safeArrayLength, formatPrice } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useDictionary } from '@/hooks/use-dictionary';
+import ClientOnly from '@/components/client-only';
+import api from '@/lib/api';
 
 interface PageProps {
 	params: {
 		id: string;
-		lang: Locale;
+		lang: string;
 	};
 }
 
-async function getComboDetails(id: string) {
-	try {
-		const response = await fetch(`${API_BASE_URL}/combos/${id}`, {
-			cache: 'no-store',
-		});
+// Fallback dictionary
+const fallbackDict = {
+	combos: {
+		buyNow: 'Mua ngay',
+		purchased: 'Đã mua',
+		comboLabel: 'Combo',
+		includedCourses: 'khóa học',
+		savingsLabel: 'Tiết kiệm',
+		off: 'giảm',
+		notFound: 'Combo không tìm thấy',
+		notFoundMessage: 'Gói combo bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.',
+		summary: 'Tóm tắt combo',
+		enrollNow: 'Đăng ký ngay',
+		viewDetails: 'Xem chi tiết',
+		noCourses: 'Chưa có khóa học nào trong combo này.',
+	},
+	courses: {
+		viewAllCourses: 'Xem các khóa học',
+		lessons: 'bài học',
+		duration: 'Thời lượng',
+		access: 'Quyền truy cập',
+		fullLifetimeAccess: 'Truy cập trọn đời',
+		certificate: 'Chứng chỉ',
+		moneyBackGuarantee: 'Đảm bảo hoàn tiền trong 30 ngày',
+		pageTitle: 'Khóa học',
+		students: 'học viên',
+		reviews: 'đánh giá',
+		overview: 'Tổng quan',
+		requirements: 'Yêu cầu',
+		instructor: 'Giảng viên',
+	},
+	common: {
+		home: 'Trang chủ',
+		back: 'Quay lại',
+	},
+};
 
-		if (!response.ok) {
-			throw new Error(`Failed to fetch combo: ${response.status} ${response.statusText}`);
-		}
+function ComboDetailsContent() {
+	const params = useParams();
+	const comboId = params.id as string;
+	const lang = params.lang as string;
+	const { user, isAuthenticated } = useAuth();
 
-		return await response.json();
-	} catch (error) {
-		console.error('Error fetching combo details:', error);
-		return null;
+	// Dictionary for translations
+	const { data: dictData } = useDictionary(lang);
+	const dict = dictData || fallbackDict;
+
+	// Fetch combo details
+	const {
+		data: combo,
+		isLoading: comboLoading,
+		error: comboError,
+	} = useQuery({
+		queryKey: ['combo', comboId],
+		queryFn: async () => {
+			const response = await fetch(`/api/combos/${comboId}`);
+			if (!response.ok) {
+				throw new Error('Failed to fetch combo');
+			}
+			return response.json();
+		},
+		enabled: !!comboId,
+	});
+
+	// Check enrollment status
+	const { data: isEnrolled, isLoading: enrollmentLoading } = useQuery({
+		queryKey: ['combo-enrollment', comboId],
+		queryFn: async () => {
+			const response = await api.get(`/enrollments/check-combo/${comboId}`);
+			return response.data;
+		},
+		enabled: !!comboId && isAuthenticated,
+		retry: 1,
+	});
+
+	if (comboLoading) {
+		return (
+			<div className='flex items-center justify-center min-h-screen'>
+				<div className='animate-spin rounded-full h-32 w-32 border-b-2 border-primary'></div>
+			</div>
+		);
 	}
-}
 
-export default async function ComboDetailsPage({ params: { id, lang } }: PageProps) {
-	const dictionary = await getDictionary(lang);
-	const combo = await getComboDetails(id);
-
-	// Ensure dictionary exists to prevent errors
-	const dict = dictionary || {};
-	const comboDict = dict.combos || {};
-	const courseDict = dict.courses || {};
-	const commonDict = dict.common || {};
-
-	// Handle case when combo is not found
-	if (!combo) {
+	if (comboError || !combo) {
 		return (
 			<div className='min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4'>
 				<div className='w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6'>
 					<Package className='w-12 h-12 text-gray-400' />
 				</div>
-				<h1 className='text-3xl font-bold text-gray-800 mb-3'>
-					{comboDict.notFound || 'Combo không tìm thấy'}
-				</h1>
-				<p className='text-gray-600 text-center max-w-md mb-8'>
-					{comboDict.notFoundMessage || 'Gói combo bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.'}
-				</p>
-				<Link href={`/${lang}/courses`}>
-					<Button className='bg-primary hover:bg-primary/90'>
-						{courseDict.viewAllCourses || 'Xem các khóa học'}
-					</Button>
+				<h1 className='text-3xl font-bold text-gray-800 mb-3'>{dict.combos.notFound}</h1>
+				<p className='text-gray-600 text-center max-w-md mb-8'>{dict.combos.notFoundMessage}</p>
+				<Link href={`/${lang}/combos`}>
+					<Button className='bg-primary hover:bg-primary/90'>{dict.courses.viewAllCourses}</Button>
 				</Link>
 			</div>
 		);
@@ -70,20 +125,91 @@ export default async function ComboDetailsPage({ params: { id, lang } }: PagePro
 	const savings = hasDiscount ? combo.originalPrice - combo.discountPrice : 0;
 	const savingsPercentage = hasDiscount ? Math.round((savings / combo.originalPrice) * 100) : 0;
 
+	// Determine button state
+	const renderPurchaseButton = () => {
+		if (!isAuthenticated) {
+			return (
+				<Link href={`/${lang}/login?redirect=${encodeURIComponent(window.location.pathname)}`}>
+					<Button
+						className='bg-gradient-to-r from-secondary to-secondary-600 hover:from-secondary-600 hover:to-secondary-700 text-white px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105'
+						size='lg'
+					>
+						<span className='flex items-center justify-center gap-2'>
+							{dict.combos.buyNow}
+							<svg className='w-5 h-5' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+								<path
+									strokeLinecap='round'
+									strokeLinejoin='round'
+									strokeWidth={2}
+									d='M13 7l5 5m0 0l-5 5m5-5H6'
+								/>
+							</svg>
+						</span>
+					</Button>
+				</Link>
+			);
+		}
+
+		if (enrollmentLoading) {
+			return (
+				<Button className='bg-gray-400 text-white px-8 py-6 rounded-xl' size='lg' disabled>
+					<div className='animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2'></div>
+					Đang kiểm tra...
+				</Button>
+			);
+		}
+
+		if (isEnrolled) {
+			return (
+				<Button
+					className='bg-green-600 hover:bg-green-700 text-white px-8 py-6 rounded-xl shadow-lg'
+					size='lg'
+					disabled
+				>
+					<span className='flex items-center justify-center gap-2'>
+						<CheckCircle className='w-5 h-5' />
+						{dict.combos.purchased}
+					</span>
+				</Button>
+			);
+		}
+
+		return (
+			<Link href={`/${lang}/combos/${combo.id}/purchase`}>
+				<Button
+					className='bg-gradient-to-r from-secondary to-secondary-600 hover:from-secondary-600 hover:to-secondary-700 text-white px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105'
+					size='lg'
+				>
+					<span className='flex items-center justify-center gap-2'>
+						{dict.combos.buyNow}
+						<svg className='w-5 h-5' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+							<path
+								strokeLinecap='round'
+								strokeLinejoin='round'
+								strokeWidth={2}
+								d='M13 7l5 5m0 0l-5 5m5-5H6'
+							/>
+						</svg>
+					</span>
+				</Button>
+			</Link>
+		);
+	};
+
 	return (
 		<div className='min-h-screen bg-gray-50 pb-20'>
 			{/* Breadcrumb */}
 			<div className='bg-white border-b border-gray-200'>
 				<div className='container mx-auto px-4 py-3 flex items-center text-sm'>
 					<Link href={`/${lang}`} className='text-gray-500 hover:text-primary'>
-						{commonDict.home || 'Trang chủ'}
+						{dict.common.home}
 					</Link>
 					<span className='mx-2 text-gray-400'>/</span>
-					<Link href={`/${lang}/courses`} className='text-gray-500 hover:text-primary'>
-						{courseDict.pageTitle || 'Khóa học'}
+					<Link href={`/${lang}/combos`} className='text-gray-500 hover:text-primary'>
+						{dict.courses.pageTitle}
 					</Link>
 					<span className='mx-2 text-gray-400'>/</span>
-					<span className='text-gray-900'>{comboDict.comboLabel || 'Combo'}</span>
+					<span className='text-gray-900'>{dict.combos.comboLabel}</span>
 				</div>
 			</div>
 
@@ -109,7 +235,7 @@ export default async function ComboDetailsPage({ params: { id, lang } }: PagePro
 										<div className='bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2'>
 											<Percent className='w-4 h-4' />
 											<span className='font-bold'>
-												{savingsPercentage}% {comboDict.off || 'giảm'}
+												{savingsPercentage}% {dict.combos.off}
 											</span>
 										</div>
 									</div>
@@ -122,13 +248,24 @@ export default async function ComboDetailsPage({ params: { id, lang } }: PagePro
 							<div className='flex flex-wrap gap-3 mb-4'>
 								<Badge variant='secondary' className='px-3 py-1 text-sm font-medium'>
 									<Package className='w-4 h-4 mr-1' />
-									{comboDict.comboLabel || 'Combo'}
+									{dict.combos.comboLabel}
 								</Badge>
 								<Badge variant='outline' className='px-3 py-1 text-sm font-medium bg-white'>
 									<BookOpen className='w-4 h-4 mr-1' />
 									{combo.courseCount || safeArrayLength(combo.courses) || 0}{' '}
-									{comboDict.includedCourses || 'Khóa học bao gồm'}
+									{dict.combos.includedCourses}
 								</Badge>
+
+								{/* Enrollment Status Badge */}
+								{isAuthenticated && isEnrolled && (
+									<Badge
+										variant='default'
+										className='px-3 py-1 text-sm font-medium bg-green-100 text-green-800'
+									>
+										<CheckCircle className='w-4 h-4 mr-1' />
+										{dict.combos.purchased}
+									</Badge>
+								)}
 							</div>
 
 							<h1 className='text-3xl md:text-4xl font-bold text-gray-900 mb-4'>
@@ -151,15 +288,14 @@ export default async function ComboDetailsPage({ params: { id, lang } }: PagePro
 								<div className='flex items-center gap-2'>
 									<Users className='w-5 h-5 text-gray-500' />
 									<span className='text-gray-700'>
-										{combo.enrolledCount || 0} {courseDict.students || 'học viên'}
+										{combo.enrolledCount || 0} {dict.courses.students}
 									</span>
 								</div>
 
 								<div className='flex items-center gap-2'>
 									<Star className='w-5 h-5 fill-yellow-400 text-yellow-400' />
 									<span className='text-gray-700'>
-										{combo.rating || '4.9'} ({combo.reviewCount || 0}{' '}
-										{courseDict.reviews || 'đánh giá'})
+										{combo.rating || '4.9'} ({combo.reviewCount || 0} {dict.courses.reviews})
 									</span>
 								</div>
 							</div>
@@ -177,39 +313,16 @@ export default async function ComboDetailsPage({ params: { id, lang } }: PagePro
 								</div>
 								{hasDiscount && (
 									<p className='text-sm text-green-600 font-medium'>
-										{comboDict.savingsLabel || 'Tiết kiệm'} {formatPrice(savings)} (
-										{savingsPercentage}%)
+										{dict.combos.savingsLabel} {formatPrice(savings)} ({savingsPercentage}%)
 									</p>
 								)}
 							</div>
 
 							<div className='flex flex-wrap gap-4'>
-								<Link href={`/${lang}/combos/${combo.id}/purchase`} className='block'>
-									<Button
-										className='bg-gradient-to-r from-secondary to-secondary-600 hover:from-secondary-600 hover:to-secondary-700 text-white px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105'
-										size='lg'
-									>
-										<span className='flex items-center justify-center gap-2'>
-											{comboDict.buyNow || 'Mua ngay'}
-											<svg
-												className='w-5 h-5'
-												fill='none'
-												viewBox='0 0 24 24'
-												stroke='currentColor'
-											>
-												<path
-													strokeLinecap='round'
-													strokeLinejoin='round'
-													strokeWidth={2}
-													d='M13 7l5 5m0 0l-5 5m5-5H6'
-												/>
-											</svg>
-										</span>
-									</Button>
-								</Link>
+								{renderPurchaseButton()}
 
 								<Button
-									variant='superOutline'
+									variant='outline'
 									className='bg-white border-gray-300 hover:bg-gray-100 text-gray-800 px-6 py-6 rounded-xl'
 									size='lg'
 								>
@@ -222,7 +335,7 @@ export default async function ComboDetailsPage({ params: { id, lang } }: PagePro
 												d='M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
 											/>
 										</svg>
-										{comboDict.viewDetails || 'Xem chi tiết'}
+										{dict.combos.viewDetails}
 									</span>
 								</Button>
 							</div>
@@ -237,9 +350,7 @@ export default async function ComboDetailsPage({ params: { id, lang } }: PagePro
 					{/* Left Column - Course List */}
 					<div className='lg:col-span-2'>
 						<div className='bg-white rounded-2xl shadow-md p-8 mb-10'>
-							<h2 className='text-2xl font-bold text-gray-900 mb-6'>
-								{comboDict.includedCourses || 'Khóa học bao gồm'}
-							</h2>
+							<h2 className='text-2xl font-bold text-gray-900 mb-6'>{dict.combos.includedCourses}</h2>
 
 							<div className='space-y-6'>
 								{Array.isArray(combo.courses) && combo.courses.length > 0 ? (
@@ -288,7 +399,7 @@ export default async function ComboDetailsPage({ params: { id, lang } }: PagePro
 													<div className='flex items-center gap-1'>
 														<BookOpen className='w-4 h-4' />
 														<span>
-															{course.lessonCount || 0} {courseDict.lessons || 'bài học'}
+															{course.lessonCount || 0} {dict.courses.lessons}
 														</span>
 													</div>
 
@@ -303,9 +414,7 @@ export default async function ComboDetailsPage({ params: { id, lang } }: PagePro
 								) : (
 									<div className='text-center py-10'>
 										<Package className='w-12 h-12 text-gray-300 mx-auto mb-4' />
-										<p className='text-gray-500'>
-											{comboDict.noCourses || 'Chưa có khóa học nào trong combo này.'}
-										</p>
+										<p className='text-gray-500'>{dict.combos.noCourses}</p>
 									</div>
 								)}
 							</div>
@@ -313,9 +422,7 @@ export default async function ComboDetailsPage({ params: { id, lang } }: PagePro
 
 						{/* What You'll Learn */}
 						<div className='bg-white rounded-2xl shadow-md p-8 mb-10'>
-							<h2 className='text-2xl font-bold text-gray-900 mb-6'>
-								{courseDict.overview || 'Tổng quan'}
-							</h2>
+							<h2 className='text-2xl font-bold text-gray-900 mb-6'>{dict.courses.overview}</h2>
 
 							<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
 								{(combo.learningPoints || []).slice(0, 8).map((point: string, idx: number) => (
@@ -376,9 +483,7 @@ export default async function ComboDetailsPage({ params: { id, lang } }: PagePro
 
 						{/* Requirements */}
 						<div className='bg-white rounded-2xl shadow-md p-8'>
-							<h2 className='text-2xl font-bold text-gray-900 mb-6'>
-								{courseDict.requirements || 'Yêu cầu'}
-							</h2>
+							<h2 className='text-2xl font-bold text-gray-900 mb-6'>{dict.courses.requirements}</h2>
 
 							<ul className='space-y-4 list-disc pl-5'>
 								{(combo.requirements || []).map((req: string, idx: number) => (
@@ -417,13 +522,11 @@ export default async function ComboDetailsPage({ params: { id, lang } }: PagePro
 					<div className='lg:col-span-1'>
 						{/* Combo Summary Card */}
 						<div className='bg-white rounded-2xl shadow-md p-6 mb-6 sticky top-24'>
-							<h3 className='text-xl font-bold text-gray-900 mb-4'>
-								{comboDict.summary || 'Tóm tắt combo'}
-							</h3>
+							<h3 className='text-xl font-bold text-gray-900 mb-4'>{dict.combos.summary}</h3>
 
 							<div className='space-y-4 mb-6'>
 								<div className='flex justify-between items-center'>
-									<span className='text-gray-600'>{courseDict.pageTitle || 'Khóa học'}</span>
+									<span className='text-gray-600'>{dict.courses.pageTitle}</span>
 									<span className='font-semibold'>
 										{combo.courseCount || safeArrayLength(combo.courses) || 0}
 									</span>
@@ -432,49 +535,42 @@ export default async function ComboDetailsPage({ params: { id, lang } }: PagePro
 								<Separator />
 
 								<div className='flex justify-between items-center'>
-									<span className='text-gray-600'>{courseDict.lessons || 'Bài học'}</span>
+									<span className='text-gray-600'>{dict.courses.lessons}</span>
 									<span className='font-semibold'>{combo.lessonCount || 0}</span>
 								</div>
 
 								<Separator />
 
 								<div className='flex justify-between items-center'>
-									<span className='text-gray-600'>{courseDict.duration || 'Thời lượng'}</span>
+									<span className='text-gray-600'>{dict.courses.duration}</span>
 									<span className='font-semibold'>{safeString(combo.totalDuration, '40h')}</span>
 								</div>
 
 								<Separator />
 
 								<div className='flex justify-between items-center'>
-									<span className='text-gray-600'>{courseDict.access || 'Quyền truy cập'}</span>
-									<span className='font-semibold'>
-										{courseDict.fullLifetimeAccess || 'Truy cập trọn đời'}
-									</span>
+									<span className='text-gray-600'>{dict.courses.access}</span>
+									<span className='font-semibold'>{dict.courses.fullLifetimeAccess}</span>
 								</div>
 
 								<Separator />
 
 								<div className='flex justify-between items-center'>
-									<span className='text-gray-600'>{courseDict.certificate || 'Chứng chỉ'}</span>
+									<span className='text-gray-600'>{dict.courses.certificate}</span>
 									<span className='font-semibold'>{combo.hasCertificate ? 'Có' : 'Không'}</span>
 								</div>
 							</div>
 
-							<Button className='w-full bg-gradient-to-r from-secondary to-secondary-600 hover:from-secondary-600 hover:to-secondary-700 text-white py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300'>
-								{comboDict.enrollNow || 'Đăng ký ngay'}
-							</Button>
+							{/* Sidebar Purchase Button */}
+							<div className='mb-4'>{renderPurchaseButton()}</div>
 
-							<p className='text-center text-sm text-gray-500 mt-4'>
-								{courseDict.moneyBackGuarantee || 'Đảm bảo hoàn tiền trong 30 ngày'}
-							</p>
+							<p className='text-center text-sm text-gray-500'>{dict.courses.moneyBackGuarantee}</p>
 						</div>
 
 						{/* Instructor Card */}
 						{combo.instructor && (
 							<div className='bg-white rounded-2xl shadow-md p-6'>
-								<h3 className='text-xl font-bold text-gray-900 mb-4'>
-									{courseDict.instructor || 'Giảng viên'}
-								</h3>
+								<h3 className='text-xl font-bold text-gray-900 mb-4'>{dict.courses.instructor}</h3>
 
 								<div className='flex items-center gap-4 mb-4'>
 									<Avatar className='w-16 h-16'>
@@ -508,5 +604,19 @@ export default async function ComboDetailsPage({ params: { id, lang } }: PagePro
 				</div>
 			</div>
 		</div>
+	);
+}
+
+export default function ComboDetailsPage() {
+	return (
+		<ClientOnly
+			fallback={
+				<div className='flex items-center justify-center min-h-screen'>
+					<div className='animate-spin rounded-full h-32 w-32 border-b-2 border-primary'></div>
+				</div>
+			}
+		>
+			<ComboDetailsContent />
+		</ClientOnly>
 	);
 }
