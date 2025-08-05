@@ -41,8 +41,17 @@ export default function NotificationCenter({ className }: NotificationCenterProp
 		queryKey: ['notificationUnreadCount'],
 		queryFn: NotificationService.getUnreadCount,
 		enabled: !!user,
-		refetchInterval: 30000, // Refetch every 30 seconds
+		refetchInterval: 15000, // Refetch every 15 seconds
+		refetchOnWindowFocus: true, // Refetch when window gains focus
+		refetchOnMount: true, // Refetch when component mounts
 	});
+
+	// Refetch unread count when popup opens
+	useEffect(() => {
+		if (isOpen && user) {
+			refetchUnreadCount();
+		}
+	}, [isOpen, user, refetchUnreadCount]);
 
 	// Fetch notifications
 	const {
@@ -121,18 +130,21 @@ export default function NotificationCenter({ className }: NotificationCenterProp
 
 	const getNotificationIcon = (type: NotificationResponse['type']) => {
 		switch (type) {
-			case 'SUCCESS':
-			case 'COURSE_APPROVED':
+			case 'COURSE_APPROVAL':
+			case 'COURSE_COMPLETION':
 				return <CheckCircle className='h-5 w-5 text-green-500' />;
-			case 'ERROR':
-			case 'COURSE_REJECTED':
+			case 'PAYMENT_FAILED':
 				return <XCircle className='h-5 w-5 text-red-500' />;
-			case 'WARNING':
+			case 'ASSIGNMENT_DUE':
 				return <AlertCircle className='h-5 w-5 text-yellow-500' />;
-			case 'PAYMENT':
+			case 'PAYMENT_SUCCESS':
 				return <CreditCard className='h-5 w-5 text-blue-500' />;
-			case 'ENROLLMENT':
+			case 'COURSE_ENROLLMENT':
 				return <BookOpen className='h-5 w-5 text-purple-500' />;
+			case 'DISCUSSION_REPLY':
+				return <Info className='h-5 w-5 text-indigo-500' />;
+			case 'SYSTEM_ANNOUNCEMENT':
+			case 'GENERAL':
 			default:
 				return <Info className='h-5 w-5 text-blue-500' />;
 		}
@@ -140,18 +152,21 @@ export default function NotificationCenter({ className }: NotificationCenterProp
 
 	const getNotificationColor = (type: NotificationResponse['type']) => {
 		switch (type) {
-			case 'SUCCESS':
-			case 'COURSE_APPROVED':
+			case 'COURSE_APPROVAL':
+			case 'COURSE_COMPLETION':
 				return 'border-l-green-500 bg-green-50';
-			case 'ERROR':
-			case 'COURSE_REJECTED':
+			case 'PAYMENT_FAILED':
 				return 'border-l-red-500 bg-red-50';
-			case 'WARNING':
+			case 'ASSIGNMENT_DUE':
 				return 'border-l-yellow-500 bg-yellow-50';
-			case 'PAYMENT':
+			case 'PAYMENT_SUCCESS':
 				return 'border-l-blue-500 bg-blue-50';
-			case 'ENROLLMENT':
+			case 'COURSE_ENROLLMENT':
 				return 'border-l-purple-500 bg-purple-50';
+			case 'DISCUSSION_REPLY':
+				return 'border-l-indigo-500 bg-indigo-50';
+			case 'SYSTEM_ANNOUNCEMENT':
+			case 'GENERAL':
 			default:
 				return 'border-l-gray-500 bg-gray-50';
 		}
@@ -164,12 +179,16 @@ export default function NotificationCenter({ className }: NotificationCenterProp
 	return (
 		<Popover open={isOpen} onOpenChange={setIsOpen}>
 			<PopoverTrigger asChild>
-				<Button variant='ghost' size='icon' className={`relative ${className}`}>
-					<Bell className='h-5 w-5' />
+				<Button
+					variant='ghost'
+					size='icon'
+					className={`relative ${className} ${unreadCount > 0 ? 'text-red-600 hover:text-red-700' : ''}`}
+				>
+					<Bell className={`h-5 w-5 ${unreadCount > 0 ? 'fill-red-100' : ''}`} />
 					{unreadCount > 0 && (
-						<Badge className='absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-red-500 hover:bg-red-600'>
-							{unreadCount > 99 ? '99+' : unreadCount}
-						</Badge>
+						<span className='absolute -top-2 -right-2 min-h-6 min-w-6 flex items-center justify-center rounded-full bg-red-500 text-white text-xs font-bold z-10 border-2 border-white shadow-lg animate-pulse px-1'>
+							{unreadCount > 999 ? '999+' : unreadCount}
+						</span>
 					)}
 				</Button>
 			</PopoverTrigger>
@@ -221,7 +240,7 @@ export default function NotificationCenter({ className }: NotificationCenterProp
 								<div
 									key={notification.id}
 									className={`p-4 border-l-4 ${getNotificationColor(notification.type)} ${
-										!notification.read ? 'font-medium' : 'opacity-75'
+										!notification.isRead ? 'font-medium' : 'opacity-75'
 									} transition-all hover:bg-gray-50`}
 								>
 									<div className='flex items-start space-x-3'>
@@ -244,7 +263,7 @@ export default function NotificationCenter({ className }: NotificationCenterProp
 													</p>
 												</div>
 												<div className='flex items-center space-x-1 ml-2'>
-													{!notification.read && (
+													{!notification.isRead && (
 														<Button
 															variant='ghost'
 															size='icon'
@@ -276,7 +295,7 @@ export default function NotificationCenter({ className }: NotificationCenterProp
 															className='text-xs h-7'
 															onClick={() => {
 																setIsOpen(false);
-																if (!notification.read) {
+																if (!notification.isRead) {
 																	handleMarkAsRead(notification.id);
 																}
 															}}

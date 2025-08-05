@@ -16,6 +16,7 @@ import {
 	Download,
 } from 'lucide-react';
 import SpeechExerciseComponent from '@/components/speech-exercise';
+import FillInTheBlankExercise from '@/components/fill-in-the-blank-exercise';
 import ResultModal from '@/components/result-modal';
 import DiscussionService from '@/services/discussion-service';
 import DiscussionList from '@/components/discussion/discussion-list';
@@ -608,17 +609,19 @@ const LearningPage: React.FC = () => {
 										<span className='text-sm text-gray-500'>
 											{dict.learning.exercise} {currentExerciseIndex + 1}/
 											{currentLesson.exercises.length}
-											{!isSpeechExercise(currentExercise.type) && currentQuestion && (
-												<>
-													{' '}
-													- {dict.learning.question} {currentQuestionIndex + 1}/
-													{currentExercise.questions.length}
-												</>
-											)}
+											{!isSpeechExercise(currentExercise.type) &&
+												currentExercise.type !== 'FILL_IN_BLANK' &&
+												currentQuestion && (
+													<>
+														{' '}
+														- {dict.learning.question} {currentQuestionIndex + 1}/
+														{currentExercise.questions.length}
+													</>
+												)}
 										</span>
 									</div>
 
-									{/* Render Speech Exercise Component for speech exercises */}
+									{/* Render Different Exercise Types */}
 									{isSpeechExercise(currentExercise.type) ? (
 										<>
 											{/* Database Integration Status */}
@@ -650,6 +653,40 @@ const LearningPage: React.FC = () => {
 												onNext={handleNextExercise}
 												dict={dict}
 												demoMode={false} // ENABLE REAL DATABASE MODE
+											/>
+										</>
+									) : currentExercise.type === 'FILL_IN_BLANK' ? (
+										/* Fill-in-the-Blank Exercise */
+										<>
+											<div className='mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg'>
+												<div className='flex items-center text-blue-800'>
+													<span className='text-lg mr-2'>📝</span>
+													<span className='font-medium'>Fill-in-the-Blank Exercise</span>
+												</div>
+												<div className='text-sm text-blue-700 mt-1'>
+													Bài tập điền từ vào chỗ trống - Exercise ID: {currentExercise.id}
+												</div>
+											</div>
+											<FillInTheBlankExercise
+												exercise={currentExercise}
+												onComplete={(result) => {
+													console.log('Fill-in-the-blank exercise completed:', result);
+													// Play audio feedback
+													playAudioFeedback(result.passed, result.score);
+													// Only proceed to next exercise if truly completed all questions
+													if (
+														result.passed &&
+														result.correctAnswers === result.totalQuestions
+													) {
+														console.log(
+															'✅ All questions completed, proceeding to next exercise'
+														);
+														handleNextExercise();
+													} else {
+														console.log('⚠️ Not all questions completed or not passed');
+													}
+												}}
+												onNext={handleNextExercise}
 											/>
 										</>
 									) : (

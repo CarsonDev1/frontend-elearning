@@ -136,6 +136,8 @@ const SpeechExerciseComponent: React.FC<SpeechExerciseComponentProps> = ({
 
 	// Initialize Speech Recognition and Media Recorder
 	useEffect(() => {
+		let isMounted = true;
+
 		if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
 			setError('Trình duyệt của bạn không hỗ trợ Speech Recognition API. Vui lòng sử dụng Chrome hoặc Edge.');
 			return;
@@ -150,6 +152,7 @@ const SpeechExerciseComponent: React.FC<SpeechExerciseComponentProps> = ({
 		recognition.maxAlternatives = 1;
 
 		recognition.onstart = () => {
+			if (!isMounted) return;
 			setIsListening(true);
 			setError(null);
 			if (!startTimeRef.current) {
@@ -159,6 +162,8 @@ const SpeechExerciseComponent: React.FC<SpeechExerciseComponentProps> = ({
 		};
 
 		recognition.onresult = (event: any) => {
+			if (!isMounted) return;
+
 			const transcript = event.results[0][0].transcript;
 			const confidence = event.results[0][0].confidence;
 
@@ -190,6 +195,8 @@ const SpeechExerciseComponent: React.FC<SpeechExerciseComponentProps> = ({
 		};
 
 		recognition.onerror = (event: any) => {
+			if (!isMounted) return;
+
 			setIsListening(false);
 			let errorMessage = 'Có lỗi xảy ra khi nhận diện giọng nói.';
 
@@ -217,6 +224,7 @@ const SpeechExerciseComponent: React.FC<SpeechExerciseComponentProps> = ({
 		};
 
 		recognition.onend = () => {
+			if (!isMounted) return;
 			setIsListening(false);
 		};
 
@@ -235,36 +243,67 @@ const SpeechExerciseComponent: React.FC<SpeechExerciseComponentProps> = ({
 				};
 
 				mediaRecorder.onstop = () => {
+					if (!isMounted) return;
+
 					// Create audio blob using the correct MIME type (audio/webm instead of audio/wav)
 					// This fixes the "Invalid image file" error
 					const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-					const audioUrl = URL.createObjectURL(audioBlob);
+					const newAudioUrl = URL.createObjectURL(audioBlob);
 					setAudioBlob(audioBlob);
-					setAudioUrl(audioUrl);
+					setAudioUrl(newAudioUrl);
 					audioChunksRef.current = [];
 				};
 
 				mediaRecorderRef.current = mediaRecorder;
 			} catch (error) {
 				console.error('Error setting up media recorder:', error);
-				setError('Không thể truy cập microphone. Vui lòng cho phép quyền truy cập.');
+				if (isMounted) {
+					setError('Không thể truy cập microphone. Vui lòng cho phép quyền truy cập.');
+				}
 			}
 		};
 
 		setupMediaRecorder();
 
 		return () => {
+			isMounted = false;
+
+			// Clean up speech recognition
 			if (recognitionRef.current) {
-				recognitionRef.current.abort();
+				try {
+					recognitionRef.current.abort();
+					recognitionRef.current = null;
+				} catch (error) {
+					console.warn('Error cleaning up speech recognition:', error);
+				}
 			}
-			if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-				mediaRecorderRef.current.stop();
-			}
-			if (audioUrl) {
-				URL.revokeObjectURL(audioUrl);
+
+			// Clean up media recorder
+			if (mediaRecorderRef.current) {
+				try {
+					if (mediaRecorderRef.current.state === 'recording') {
+						mediaRecorderRef.current.stop();
+					}
+					mediaRecorderRef.current = null;
+				} catch (error) {
+					console.warn('Error cleaning up media recorder:', error);
+				}
 			}
 		};
-	}, [exercise.speechRecognitionLanguage, audioUrl]);
+	}, [exercise.speechRecognitionLanguage]);
+
+	// Separate effect to clean up audio URL
+	useEffect(() => {
+		return () => {
+			if (audioUrl) {
+				try {
+					URL.revokeObjectURL(audioUrl);
+				} catch (error) {
+					console.warn('Error revoking audio URL:', error);
+				}
+			}
+		};
+	}, [audioUrl]);
 
 	// Submit exercise result
 	const submitExercise = useCallback(async () => {
@@ -440,14 +479,25 @@ const SpeechExerciseComponent: React.FC<SpeechExerciseComponentProps> = ({
 
 	// Submit exercise result when recognized text changes
 	useEffect(() => {
+		let isMounted = true;
+
 		if (recognizedText && !result && startTimeRef.current && isVoiceExercise(exercise.type)) {
 			// Add small delay to ensure confidence score is set
 			const submitTimer = setTimeout(() => {
-				submitExercise();
+				if (isMounted) {
+					submitExercise();
+				}
 			}, 500);
 
-			return () => clearTimeout(submitTimer);
+			return () => {
+				isMounted = false;
+				clearTimeout(submitTimer);
+			};
 		}
+
+		return () => {
+			isMounted = false;
+		};
 	}, [recognizedText, exercise.type, result, submitExercise]);
 
 	// Start/Stop listening

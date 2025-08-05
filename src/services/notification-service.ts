@@ -2,12 +2,13 @@ import api from '@/lib/api';
 
 export interface NotificationResponse {
   id: number;
-  userId: number;
   title: string;
   message: string;
-  type: 'INFO' | 'SUCCESS' | 'WARNING' | 'ERROR' | 'COURSE_APPROVED' | 'COURSE_REJECTED' | 'ENROLLMENT' | 'PAYMENT';
-  read: boolean;
+  type: 'COURSE_APPROVAL' | 'COURSE_ENROLLMENT' | 'COURSE_COMPLETION' | 'PAYMENT_SUCCESS' | 'PAYMENT_FAILED' | 'SYSTEM_ANNOUNCEMENT' | 'DISCUSSION_REPLY' | 'ASSIGNMENT_DUE' | 'GENERAL';
+  isRead: boolean;
+  read?: boolean; // For backward compatibility
   actionUrl?: string;
+  actionText?: string;
   metadata?: {
     courseId?: number;
     courseName?: string;
@@ -17,7 +18,7 @@ export interface NotificationResponse {
     enrollmentId?: number;
   };
   createdAt: string;
-  updatedAt: string;
+  readAt?: string;
 }
 
 export interface NotificationCreateRequest {
@@ -67,8 +68,8 @@ const NotificationService = {
    * @returns Number of unread notifications
    */
   getUnreadCount: async (): Promise<number> => {
-    const response = await api.get<{ count: number }>('/notifications/unread-count');
-    return response.data.count;
+    const response = await api.get<{ unreadCount: number; totalCount: number }>('/notifications/unread-count');
+    return response.data.unreadCount;
   },
 
   /**

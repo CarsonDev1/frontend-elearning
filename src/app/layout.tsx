@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Manrope } from 'next/font/google';
 import './globals.css';
 import { AppProviders } from '@/providers';
+import ErrorBoundary from '@/components/error-boundary';
 
 const poppins = Manrope({
 	weight: ['400', '500', '600', '700', '800'],
@@ -21,7 +22,9 @@ export default function RootLayout({
 	return (
 		<html>
 			<body className={poppins.className}>
-				<AppProviders>{children}</AppProviders>
+				<ErrorBoundary>
+					<AppProviders>{children}</AppProviders>
+				</ErrorBoundary>
 			</body>
 		</html>
 	);
