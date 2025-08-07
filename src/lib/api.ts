@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Base URL for API
-export const API_BASE_URL = 'http://160.250.181.140/api';
+export const API_BASE_URL = 'https://api.rongvang.online/api';
 
 // Create an axios instance with custom config
 const api = axios.create({
