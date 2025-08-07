@@ -19,7 +19,7 @@ import ClientOnly from '@/components/client-only';
 import { useDictionary } from '@/hooks/use-dictionary';
 
 import UserService from '@/services/user-service';
-import EnrollmentService, { Enrollment } from '@/services/enrollment-service';
+import EnrollmentService from '@/services/enrollment-service';
 import PaymentHistoryService, { PaymentHistoryResponse } from '@/services/payment-history-service';
 
 // Define fallback translations
@@ -125,8 +125,8 @@ function StudentDashboardContent() {
 		enabled: !!user && user.roles?.includes('ROLE_STUDENT'),
 	});
 
-	const completedCourses = enrollments.filter((e) => e.completed);
-	const inProgressCourses = enrollments.filter((e) => !e.completed);
+	const completedCourses = enrollments.filter((e: any) => e.completed);
+	const inProgressCourses = enrollments.filter((e: any) => !e.completed);
 	const totalSpent = paymentHistory.reduce((sum, payment) => {
 		const pricePaid =
 			typeof payment.pricePaid === 'number' && !isNaN(payment.pricePaid)
@@ -357,7 +357,7 @@ function StudentDashboardContent() {
 					{/* Courses Tab */}
 					<TabsContent value='courses' className='space-y-6'>
 						<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-							{enrollments.map((enrollment) => (
+							{enrollments.map((enrollment: any) => (
 								<Card key={enrollment.id}>
 									<CardContent className='pt-6'>
 										<div className='flex items-start space-x-4'>
@@ -369,7 +369,7 @@ function StudentDashboardContent() {
 											<div className='flex-1'>
 												<h3 className='font-semibold'>{enrollment.course.title}</h3>
 												<p className='text-sm text-gray-500 mb-2'>
-													{enrollment.course.tutor.fullName}
+													{enrollment.course.tutor?.fullName}
 												</p>
 												<div className='flex items-center justify-between mb-2'>
 													<Badge variant={enrollment.completed ? 'default' : 'secondary'}>

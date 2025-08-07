@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import PaymentService, { VnpayReturnParams, PaymentVerificationResponse } from '@/services/payment-service';
 import { CheckCircle, XCircle, Loader2, X } from 'lucide-react';
@@ -13,7 +13,7 @@ interface PaymentHandlerProps {
 	lang: string;
 }
 
-export default function PaymentHandler({ dictionary, lang }: PaymentHandlerProps) {
+function PaymentHandlerContent({ dictionary, lang }: PaymentHandlerProps) {
 	const [isMounted, setIsMounted] = useState(false);
 	const [showPaymentModal, setShowPaymentModal] = useState(false);
 	const [paymentState, setPaymentState] = useState<{
@@ -105,7 +105,7 @@ export default function PaymentHandler({ dictionary, lang }: PaymentHandlerProps
 				// This prevents reprocessing on page refresh
 				const baseURL = window.location.pathname;
 				window.history.replaceState({}, document.title, baseURL);
-			} catch (error) {
+			} catch (error: any) {
 				console.error('Error processing payment result:', error);
 				setPaymentState({
 					isProcessing: false,
@@ -217,5 +217,13 @@ export default function PaymentHandler({ dictionary, lang }: PaymentHandlerProps
 				)}
 			</div>
 		</div>
+	);
+}
+
+export default function PaymentHandler({ dictionary, lang }: PaymentHandlerProps) {
+	return (
+		<Suspense fallback={<div>Loading...</div>}>
+			<PaymentHandlerContent dictionary={dictionary} lang={lang} />
+		</Suspense>
 	);
 }

@@ -67,8 +67,8 @@ const items = [
 		icon: '/images/gift-voucher.png',
 	},
 	{
-		title: 'Hóa đơn',
-		url: '/admin/bills',
+		title: 'Thanh toán',
+		url: '/admin/payments',
 		icon: '/images/shop.svg',
 	},
 	{

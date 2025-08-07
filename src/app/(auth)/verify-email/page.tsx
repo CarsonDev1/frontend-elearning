@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { CheckCircle, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import AuthService from '@/lib/auth-service';
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
 	const searchParams = useSearchParams();
 	const token = searchParams.get('token');
 
@@ -94,5 +94,27 @@ export default function VerifyEmailPage() {
 				</CardContent>
 			</Card>
 		</div>
+	);
+}
+
+export default function VerifyEmailPage() {
+	return (
+		<Suspense fallback={
+			<div className='flex items-center justify-center sec-com'>
+				<Card className='w-full max-w-md shadow-lg'>
+					<CardContent className='p-6'>
+						<div className='flex flex-col items-center text-center space-y-4'>
+							<div className='animate-pulse flex flex-col items-center py-8'>
+								<div className='h-12 w-12 rounded-full bg-gray-200 mb-4'></div>
+								<div className='h-4 w-32 bg-gray-200 rounded mb-2'></div>
+								<div className='h-3 w-48 bg-gray-200 rounded'></div>
+							</div>
+						</div>
+					</CardContent>
+				</Card>
+			</div>
+		}>
+			<VerifyEmailContent />
+		</Suspense>
 	);
 }

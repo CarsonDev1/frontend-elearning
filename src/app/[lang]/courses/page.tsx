@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
@@ -17,7 +17,7 @@ import CourseSkeleton from '@/app/pages/home/course-skeleton';
 import CourseService from '@/services/course-service';
 import { formatPrice } from '@/lib/utils';
 
-const CoursesPage = ({ dictionary, currentLocale }: { dictionary: any; currentLocale: string }) => {
+function CoursesContent({ dictionary, currentLocale }: { dictionary: any; currentLocale: string }) {
 	const params = useParams();
 	const searchParams = useSearchParams();
 	const router = useRouter();
@@ -106,7 +106,7 @@ const CoursesPage = ({ dictionary, currentLocale }: { dictionary: any; currentLo
 				};
 			} catch (error) {
 				console.error('Error fetching courses:', error);
-				return { content: [], totalPages: 0, totalElements: 0 };
+				return { content: [], totalElements: 0, totalPages: 0, size: 12, number: 0 };
 			}
 		},
 	});
@@ -602,6 +602,28 @@ const CoursesPage = ({ dictionary, currentLocale }: { dictionary: any; currentLo
 				</div>
 			</div>
 		</div>
+	);
+}
+
+const CoursesPage = ({ dictionary, currentLocale }: { dictionary: any; currentLocale: string }) => {
+	return (
+		<Suspense fallback={
+			<div className='bg-white'>
+				<div className='sec-com'>
+					<div className='py-16'>
+						<div className='container-lg'>
+							<div className='animate-pulse'>
+								<div className='h-8 bg-gray-200 rounded w-1/3 mb-4'></div>
+								<div className='h-4 bg-gray-200 rounded w-1/2 mb-8'></div>
+								<div className='h-12 bg-gray-200 rounded w-full max-w-2xl'></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		}>
+			<CoursesContent dictionary={dictionary} currentLocale={currentLocale} />
+		</Suspense>
 	);
 };
 

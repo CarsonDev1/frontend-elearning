@@ -1,7 +1,7 @@
 // hooks/useEnrollments.ts
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import EnrollmentService, { Enrollment, Course } from '@/services/enrollment-service';
+import EnrollmentService, { Course } from '@/services/enrollment-service';
 
 // Query key for enrollments
 const ENROLLMENTS_QUERY_KEY = 'user-enrollments';
@@ -46,7 +46,7 @@ export function useEnrollments() {
 	 * @param courseId The course ID to get enrollment for
 	 * @returns The enrollment object or undefined if not enrolled
 	 */
-	const getEnrollment = (courseId: number): Enrollment | undefined => {
+	const getEnrollment = (courseId: number): any | undefined => {
 		return enrollments?.find(enrollment => enrollment.course.id === courseId);
 	};
 
@@ -74,9 +74,9 @@ export function useEnrollments() {
 	 * Get courses that the user is currently learning (enrolled but not completed)
 	 * @returns Array of courses that are in progress
 	 */
-	const getInProgressCourses = (): Course[] => {
+	const getInProgressCourses = (): any[] => {
 		return enrollments
-			?.filter(enrollment => !enrollment.completed)
+			?.filter((enrollment: any) => !enrollment.completed)
 			.map(enrollment => enrollment.course) || [];
 	};
 
@@ -84,9 +84,9 @@ export function useEnrollments() {
 	 * Get courses that the user has completed
 	 * @returns Array of completed courses
 	 */
-	const getCompletedCourses = (): Course[] => {
+	const getCompletedCourses = (): any[] => {
 		return enrollments
-			?.filter(enrollment => enrollment.completed)
+			?.filter((enrollment: any) => enrollment.completed)
 			.map(enrollment => enrollment.course) || [];
 	};
 

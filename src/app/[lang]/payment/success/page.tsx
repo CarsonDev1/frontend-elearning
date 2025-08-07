@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
 import { CheckCircleIcon, XCircleIcon, UserPlusIcon, BookOpenIcon, MailIcon } from 'lucide-react';
@@ -24,7 +24,7 @@ function PaymentSuccessContent() {
 	const [userInfo, setUserInfo] = useState<any>(null);
 
 	// Extract VNPay parameters
-	const vnpayParams = {
+	const vnpayParams: any = {
 		vnp_ResponseCode: searchParams.get('vnp_ResponseCode'),
 		vnp_TxnRef: searchParams.get('vnp_TxnRef'),
 		vnp_Amount: searchParams.get('vnp_Amount'),
@@ -98,19 +98,10 @@ function PaymentSuccessContent() {
 						<div className='text-center'>
 							<XCircleIcon className='w-16 h-16 text-red-500 mx-auto mb-4' />
 							<h2 className='text-2xl font-bold text-gray-800 mb-2'>Thanh toán thất bại</h2>
-							<p className='text-gray-600 mb-6'>
-								Giao dịch không thành công. Vui lòng thử lại hoặc liên hệ hỗ trợ.
-							</p>
-							<div className='space-y-2'>
-								<Link href={`/${lang}/combos`} className='block'>
-									<Button className='w-full'>Quay lại danh sách combo</Button>
-								</Link>
-								<Link href={`/${lang}/contact`} className='block'>
-									<Button variant='outline' className='w-full'>
-										Liên hệ hỗ trợ
-									</Button>
-								</Link>
-							</div>
+							<p className='text-gray-600 mb-6'>Giao dịch không thành công hoặc đã bị hủy</p>
+							<Link href={`/${lang}/courses`}>
+								<Button className='w-full'>Quay lại trang khóa học</Button>
+							</Link>
 						</div>
 					</CardContent>
 				</Card>
@@ -239,7 +230,7 @@ function PaymentSuccessContent() {
 										</Button>
 									</Link>
 									<Link href={`/${lang}/combos`} className='block'>
-										<Button variant='outline' size='lg' className='w-full'>
+										<Button variant='superOutline' size='lg' className='w-full'>
 											<BookOpenIcon className='h-5 w-5 mr-2' />
 											Xem thêm combo khác
 										</Button>
@@ -273,7 +264,17 @@ export default function PaymentSuccess() {
 				</div>
 			}
 		>
-			<PaymentSuccessContent />
+			<Suspense fallback={
+				<div className='min-h-screen bg-gray-50 flex items-center justify-center'>
+					<div className='text-center'>
+						<div className='animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4'></div>
+						<h2 className='text-xl font-semibold text-gray-800 mb-2'>Đang tải...</h2>
+						<p className='text-gray-600'>Vui lòng đợi trong giây lát</p>
+					</div>
+				</div>
+			}>
+				<PaymentSuccessContent />
+			</Suspense>
 		</ClientOnly>
 	);
 }

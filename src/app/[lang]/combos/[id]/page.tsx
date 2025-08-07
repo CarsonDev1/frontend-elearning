@@ -322,7 +322,7 @@ function ComboDetailsContent() {
 								{renderPurchaseButton()}
 
 								<Button
-									variant='outline'
+									variant='superOutline'
 									className='bg-white border-gray-300 hover:bg-gray-100 text-gray-800 px-6 py-6 rounded-xl'
 									size='lg'
 								>

@@ -170,7 +170,7 @@ export default function AiContentGenerator({ onContentGenerated }: AiContentGene
 	return (
 		<Dialog>
 			<DialogTrigger asChild>
-				<Button variant='outline' className='gap-2'>
+				<Button variant='superOutline' className='gap-2'>
 					<Sparkles className='h-4 w-4' />
 					Tạo nội dung bằng AI
 				</Button>
@@ -376,7 +376,7 @@ export default function AiContentGenerator({ onContentGenerated }: AiContentGene
 
 											<div className='flex space-x-2'>
 												<Button
-													variant='outline'
+													variant='superOutline'
 													onClick={() =>
 														copyToClipboard(JSON.stringify(generatedExercise, null, 2))
 													}
@@ -605,7 +605,7 @@ export default function AiContentGenerator({ onContentGenerated }: AiContentGene
 
 											<div className='flex space-x-2'>
 												<Button
-													variant='outline'
+													variant='superOutline'
 													onClick={() =>
 														copyToClipboard(JSON.stringify(generatedListening, null, 2))
 													}
@@ -766,7 +766,7 @@ export default function AiContentGenerator({ onContentGenerated }: AiContentGene
 
 											<div className='flex space-x-2'>
 												<Button
-													variant='outline'
+													variant='superOutline'
 													onClick={() =>
 														copyToClipboard(JSON.stringify(generatedLesson, null, 2))
 													}

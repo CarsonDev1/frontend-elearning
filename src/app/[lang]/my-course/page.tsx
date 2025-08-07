@@ -18,7 +18,7 @@ import {
 	FilterX,
 } from 'lucide-react';
 
-import EnrollmentService, { Enrollment } from '@/services/enrollment-service';
+import EnrollmentService from '@/services/enrollment-service';
 import { formatDuration } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -70,7 +70,7 @@ export default function MyCoursesPage() {
 	};
 
 	// Filter enrollments based on search query and active tab
-	const filteredEnrollments = enrollments?.filter((enrollment) => {
+	const filteredEnrollments = enrollments?.filter((enrollment: any) => {
 		const matchesSearch =
 			enrollment.course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
 			enrollment.course.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -85,7 +85,7 @@ export default function MyCoursesPage() {
 
 	// Derived data
 	const totalCourses = enrollments?.length || 0;
-	const completedCourses = enrollments?.filter((e) => e.completed).length || 0;
+	const completedCourses = enrollments?.filter((e: any) => e.completed).length || 0;
 	const inProgressCourses = totalCourses - completedCourses;
 
 	// Loading state
@@ -274,7 +274,7 @@ const CourseCard = ({
 	dict,
 	lang,
 }: {
-	enrollment: Enrollment;
+	enrollment: any;
 	formatDate: (date: string) => string;
 	dict: any;
 	lang: string;

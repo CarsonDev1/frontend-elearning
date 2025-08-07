@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Banner from '@/app/pages/home/banner';
 import PublicCourse from '@/app/pages/home/public-course';
 import PublicCombo from '@/app/pages/home/public-combo';
@@ -14,7 +14,7 @@ import useEnrollments from '@/hooks/use-my-enrollments';
 import WhyChooseJPE from '@/app/pages/home/why-choose';
 import { formatPrice } from '@/lib/utils';
 
-export default function HomeClient({ dictionary }: { dictionary: any }) {
+function HomeClientContent({ dictionary }: { dictionary: any }) {
 	const [isMounted, setIsMounted] = useState(false);
 	const [showPaymentModal, setShowPaymentModal] = useState(false);
 	const [paymentState, setPaymentState] = useState<{
@@ -98,23 +98,17 @@ export default function HomeClient({ dictionary }: { dictionary: any }) {
 				setPaymentState({
 					isProcessing: false,
 					isSuccess: true,
-					message: result.message || 'Payment processed successfully!',
-					orderInfo: result.orderInfo || queryParams.vnp_OrderInfo || '',
-					amount: result.amount || parseInt(queryParams.vnp_Amount || '0') / 100,
+					message: result.message || 'Payment completed successfully!',
+					orderInfo: queryParams.vnp_OrderInfo || '',
+					amount: parseInt(queryParams.vnp_Amount || '0') / 100,
 					isError: false,
 				});
-
-				// Clean the URL to remove payment parameters after successful processing
-				// This prevents reprocessing on page refresh
-				const baseURL = window.location.pathname;
-				window.history.replaceState({}, document.title, baseURL);
-			} catch (error) {
-				console.error('Error processing payment result:', error);
+			} catch (error: any) {
+				console.error('Payment processing error:', error);
 				setPaymentState({
 					isProcessing: false,
 					isSuccess: false,
-					message:
-						'An error occurred while processing your payment. The transaction may still have been successful. Please check your account or contact support.',
+					message: error.message || 'Payment verification failed. Please contact support.',
 					orderInfo: '',
 					amount: 0,
 					isError: true,
@@ -230,5 +224,13 @@ export default function HomeClient({ dictionary }: { dictionary: any }) {
 				</div>
 			)}
 		</>
+	);
+}
+
+export default function HomeClient({ dictionary }: { dictionary: any }) {
+	return (
+		<Suspense fallback={<div>Loading...</div>}>
+			<HomeClientContent dictionary={dictionary} />
+		</Suspense>
 	);
 }

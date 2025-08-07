@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
@@ -49,7 +49,7 @@ interface CoursesPageProps {
   currentLocale: Locale;
 }
 
-const CoursesPage = ({ dictionary, currentLocale }: CoursesPageProps) => {
+function CoursesPageContent({ dictionary, currentLocale }: CoursesPageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -126,8 +126,9 @@ const CoursesPage = ({ dictionary, currentLocale }: CoursesPageProps) => {
         );
 
         setCoursesData({
-          ...response,
           content: filteredCourses,
+          totalPages: response.totalPages,
+          totalElements: response.totalElements,
         });
       } catch (error) {
         console.error('Error fetching courses:', error);
@@ -490,6 +491,14 @@ const CoursesPage = ({ dictionary, currentLocale }: CoursesPageProps) => {
         </div>
       </div>
     </div>
+  );
+}
+
+const CoursesPage = ({ dictionary, currentLocale }: CoursesPageProps) => {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CoursesPageContent dictionary={dictionary} currentLocale={currentLocale} />
+    </Suspense>
   );
 };
 
