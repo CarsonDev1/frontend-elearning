@@ -168,7 +168,7 @@ const PaymentService = {
     size: number;
     number: number;
   }> => {
-    const response = await api.get(`/admin/payments/waiting-confirmation?page=${page}&size=${size}`);
+    const response = await api.get(`/payments/admin/waiting-confirmation?page=${page}&size=${size}`);
     return response.data;
   },
 
@@ -182,7 +182,7 @@ const PaymentService = {
     size: number;
     number: number;
   }> => {
-    const response = await api.get(`/admin/payments/pending?page=${page}&size=${size}`);
+    const response = await api.get(`/payments/admin/pending?page=${page}&size=${size}`);
     return response.data;
   },
 
@@ -190,7 +190,7 @@ const PaymentService = {
    * Admin: Processes payment (approve/reject)
    */
   processPayment: async (request: AdminProcessPaymentRequest): Promise<PaymentResponse> => {
-    const response = await api.post<PaymentResponse>('/admin/payments/process', request);
+    const response = await api.post<PaymentResponse>('/payments/admin/process', request);
     return response.data;
   },
 

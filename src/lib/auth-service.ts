@@ -17,6 +17,8 @@ export interface TutorRegisterParams {
   phoneNumber: string;
   password: string;
   confirmPassword: string;
+  identityCardNumber: string;
+  homeAddress: string;
   teachingRequirements: string;
   educations: {
     institution: string;
@@ -34,6 +36,7 @@ export interface TutorRegisterParams {
     description: string;
     current: boolean;
   }[];
+  certificates?: File[];
 }
 
 export interface LoginParams {
@@ -63,6 +66,23 @@ export interface VerifyEmailResponse {
   message: string;
 }
 
+export interface ResetPasswordParams {
+  token: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export interface ChangePasswordParams {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export interface MessageResponse {
+  message: string;
+  success?: boolean;
+}
+
 // Cookie configuration
 const COOKIE_OPTIONS = {
   secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
@@ -87,17 +107,38 @@ const AuthService = {
   },
 
   // Register a new tutor
-  async registerTutor(params: TutorRegisterParams): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>('/auth/register/tutor', params);
-    const { token, refreshToken } = response.data;
+  async registerTutor(params: TutorRegisterParams): Promise<any> {
+    // Create FormData for file upload
+    const formData = new FormData();
 
-    // Save tokens to cookies with proper configuration
-    Cookies.set('token', token, {
-      ...COOKIE_OPTIONS,
-      expires: 1 // 1 day for access token
-    });
-    Cookies.set('refreshToken', refreshToken, COOKIE_OPTIONS);
+    // Add basic fields
+    formData.append('fullName', params.fullName);
+    formData.append('email', params.email);
+    formData.append('phoneNumber', params.phoneNumber);
+    formData.append('password', params.password);
+    formData.append('confirmPassword', params.confirmPassword);
+    formData.append('identityCardNumber', params.identityCardNumber);
+    formData.append('homeAddress', params.homeAddress);
+    formData.append('teachingRequirements', params.teachingRequirements || '');
 
+    // Add educations as JSON string
+    if (params.educations && params.educations.length > 0) {
+      formData.append('educationsJson', JSON.stringify(params.educations));
+    }
+
+    // Add experiences as JSON string
+    if (params.experiences && params.experiences.length > 0) {
+      formData.append('experiencesJson', JSON.stringify(params.experiences));
+    }
+
+    // Add certificate files
+    if (params.certificates && params.certificates.length > 0) {
+      params.certificates.forEach((file) => {
+        formData.append('certificates', file);
+      });
+    }
+
+    const response = await api.post('/auth/register/tutor', formData);
     return response.data;
   },
 
@@ -131,12 +172,34 @@ const AuthService = {
     return response.data;
   },
 
-  async forgotPassword(email: string): Promise<{ message: string }> {
+  async forgotPassword(email: string): Promise<MessageResponse> {
     try {
-      const response = await api.post<{ message: string }>('/auth/forgot-password', { email });
+      const response = await api.post<MessageResponse>('/auth/forgot-password', { email });
       return response.data;
     } catch (error) {
       console.error("Forgot password error:", error);
+      throw error;
+    }
+  },
+
+  // Reset password using token from email
+  async resetPassword(params: ResetPasswordParams): Promise<MessageResponse> {
+    try {
+      const response = await api.post<MessageResponse>('/auth/reset-password', params);
+      return response.data;
+    } catch (error) {
+      console.error("Reset password error:", error);
+      throw error;
+    }
+  },
+
+  // Change password for authenticated user
+  async changePassword(params: ChangePasswordParams): Promise<MessageResponse> {
+    try {
+      const response = await api.post<MessageResponse>('/auth/change-password', params);
+      return response.data;
+    } catch (error) {
+      console.error("Change password error:", error);
       throw error;
     }
   },

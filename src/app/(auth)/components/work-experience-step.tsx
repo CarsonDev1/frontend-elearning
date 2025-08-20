@@ -41,9 +41,12 @@ export default function WorkExperienceStep({ onContinue, onBack }: WorkExperienc
 		phoneNumber,
 		password,
 		confirmPassword,
+		identityCardNumber,
+		homeAddress,
 		teachingRequirements,
 		educations,
 		experiences,
+		certificates,
 		addExperience,
 		removeExperience,
 		reset,
@@ -80,8 +83,8 @@ export default function WorkExperienceStep({ onContinue, onBack }: WorkExperienc
 				endDate: newExperience.current
 					? ''
 					: newExperience.endDate
-						? format(newExperience.endDate, 'yyyy-MM-dd')
-						: '',
+					? format(newExperience.endDate, 'yyyy-MM-dd')
+					: '',
 				description: newExperience.description,
 				current: newExperience.current,
 			});
@@ -100,9 +103,12 @@ export default function WorkExperienceStep({ onContinue, onBack }: WorkExperienc
 				phoneNumber,
 				password,
 				confirmPassword,
+				identityCardNumber,
+				homeAddress,
 				teachingRequirements,
 				educations,
 				experiences,
+				certificates,
 			};
 
 			await AuthService.registerTutor(registrationData);
@@ -204,7 +210,7 @@ export default function WorkExperienceStep({ onContinue, onBack }: WorkExperienc
 										{experience.current
 											? 'Hiện tại'
 											: experience.endDate &&
-											new Date(experience.endDate).toLocaleDateString('vi-VN')}
+											  new Date(experience.endDate).toLocaleDateString('vi-VN')}
 										{' • '}
 										{calculateYearsOfExperience(
 											experience.startDate,
@@ -324,7 +330,7 @@ export default function WorkExperienceStep({ onContinue, onBack }: WorkExperienc
 												className={cn(
 													'w-full justify-start text-left font-normal',
 													(!newExperience.endDate || newExperience.current) &&
-													'text-muted-foreground'
+														'text-muted-foreground'
 												)}
 												disabled={newExperience.current}
 											>

@@ -76,9 +76,9 @@ const NewDiscussionModal: React.FC<NewDiscussionModalProps> = ({
 
 	return (
 		<Dialog open={isOpen} onOpenChange={handleClose}>
-			<DialogContent className='sm:max-w-[500px]'>
+			<DialogContent className='max-w-2xl'>
 				<DialogHeader>
-					<DialogTitle>{dict.learning.newDiscussion}</DialogTitle>
+					<DialogTitle>{dict.learning.newDiscussion || 'Thảo luận mới'}</DialogTitle>
 				</DialogHeader>
 
 				<form onSubmit={handleSubmit} className='space-y-4 mt-4'>
@@ -86,26 +86,26 @@ const NewDiscussionModal: React.FC<NewDiscussionModalProps> = ({
 
 					<div className='space-y-2'>
 						<label htmlFor='title' className='text-sm font-medium'>
-							{dict.learning.discussionTitle}
+							{dict.learning.discussionTitle || 'Tiêu đề thảo luận'}
 						</label>
 						<Input
 							id='title'
 							value={title}
 							onChange={(e) => setTitle(e.target.value)}
-							placeholder={dict.learning.discussionTitlePlaceholder}
+							placeholder={dict.learning.discussionTitlePlaceholder || 'Nhập tiêu đề thảo luận...'}
 							disabled={createDiscussionMutation.isPending}
 						/>
 					</div>
 
 					<div className='space-y-2'>
 						<label htmlFor='content' className='text-sm font-medium'>
-							{dict.learning.discussionContent}
+							{dict.learning.discussionContent || 'Nội dung thảo luận'}
 						</label>
 						<Textarea
 							id='content'
 							value={content}
 							onChange={(e) => setContent(e.target.value)}
-							placeholder={dict.learning.discussionContentPlaceholder}
+							placeholder={dict.learning.discussionContentPlaceholder || 'Nhập nội dung thảo luận...'}
 							rows={5}
 							disabled={createDiscussionMutation.isPending}
 						/>
@@ -118,16 +118,16 @@ const NewDiscussionModal: React.FC<NewDiscussionModalProps> = ({
 							onClick={handleClose}
 							disabled={createDiscussionMutation.isPending}
 						>
-							{dict.common.cancel}
+							{dict.common.cancel || 'Hủy'}
 						</Button>
 						<Button type='submit' disabled={createDiscussionMutation.isPending}>
 							{createDiscussionMutation.isPending ? (
 								<>
 									<Loader2 className='mr-2 h-4 w-4 animate-spin' />
-									{dict.common.submitting}
+									{dict.common.submitting || 'Đang gửi...'}
 								</>
 							) : (
-								dict.common.submit
+								dict.common.submit || 'Gửi'
 							)}
 						</Button>
 					</DialogFooter>

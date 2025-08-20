@@ -7,7 +7,9 @@ import { ChevronLeft } from 'lucide-react';
 import StepIndicator from '@/app/(auth)/components/step-indicator';
 import AccountTypeStep from '@/app/(auth)/components/account-type-step';
 import AccountDetailsStep from '@/app/(auth)/components/account-details-step';
+import PersonalInfoStep from '@/app/(auth)/components/personal-info-step';
 import TutorProfileStep from '@/app/(auth)/components/tutor-profile-step';
+import CertificateUploadStep from '@/app/(auth)/components/certificate-upload-step';
 import WorkExperienceStep from '@/app/(auth)/components/work-experience-step';
 import Link from 'next/link';
 import { useTutorRegistrationStore } from '@/store/tutor-registration-store';
@@ -25,7 +27,7 @@ export default function AccountCreationFlow() {
 	}, [resetStore]);
 
 	const getTotalSteps = () => {
-		return selectedAccountType === 'tutor' ? 5 : 3;
+		return selectedAccountType === 'tutor' ? 7 : 3;
 	};
 
 	const totalSteps = getTotalSteps();
@@ -47,7 +49,7 @@ export default function AccountCreationFlow() {
 	};
 
 	const handleComplete = () => {
-		// Move to the final success step (step 5)
+		// Move to the final success step (step 7)
 		goToNextStep();
 	};
 
@@ -100,14 +102,22 @@ export default function AccountCreationFlow() {
 					)}
 
 					{currentStep === 3 && selectedAccountType === 'tutor' && (
-						<TutorProfileStep onContinue={goToNextStep} onBack={goToPreviousStep} />
+						<PersonalInfoStep onContinue={goToNextStep} onBack={goToPreviousStep} />
 					)}
 
 					{currentStep === 4 && selectedAccountType === 'tutor' && (
-						<WorkExperienceStep onContinue={handleComplete} onBack={goToPreviousStep} />
+						<TutorProfileStep onContinue={goToNextStep} onBack={goToPreviousStep} />
 					)}
 
 					{currentStep === 5 && selectedAccountType === 'tutor' && (
+						<CertificateUploadStep onContinue={goToNextStep} onBack={goToPreviousStep} />
+					)}
+
+					{currentStep === 6 && selectedAccountType === 'tutor' && (
+						<WorkExperienceStep onContinue={handleComplete} onBack={goToPreviousStep} />
+					)}
+
+					{currentStep === 7 && selectedAccountType === 'tutor' && (
 						<div className='p-6 text-center'>
 							<h2 className='text-2xl font-bold mb-4'>Đăng ký thành công</h2>
 							<p className='mb-6'>

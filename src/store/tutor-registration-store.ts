@@ -27,6 +27,10 @@ interface TutorRegistrationState {
   password: string;
   confirmPassword: string;
 
+  // Additional personal info
+  identityCardNumber: string;
+  homeAddress: string;
+
   // Tutor profile info
   teachingRequirements: string;
 
@@ -36,6 +40,9 @@ interface TutorRegistrationState {
   // Work experience
   experiences: Experience[];
 
+  // Certificates
+  certificates: File[];
+
   // Action methods
   setBasicInfo: (data: {
     fullName: string;
@@ -43,6 +50,11 @@ interface TutorRegistrationState {
     phoneNumber: string;
     password: string;
     confirmPassword: string;
+  }) => void;
+
+  setPersonalInfo: (data: {
+    identityCardNumber: string;
+    homeAddress: string;
   }) => void;
 
   setTeachingRequirements: (requirements: string) => void;
@@ -55,6 +67,9 @@ interface TutorRegistrationState {
   updateExperience: (index: number, experience: Experience) => void;
   removeExperience: (index: number) => void;
 
+  addCertificate: (file: File) => void;
+  removeCertificate: (index: number) => void;
+
   reset: () => void;
 }
 
@@ -64,9 +79,12 @@ const initialState = {
   phoneNumber: '',
   password: '',
   confirmPassword: '',
+  identityCardNumber: '',
+  homeAddress: '',
   teachingRequirements: '',
   educations: [],
-  experiences: []
+  experiences: [],
+  certificates: []
 };
 
 export const useTutorRegistrationStore = create<TutorRegistrationState>()(
@@ -80,6 +98,11 @@ export const useTutorRegistrationStore = create<TutorRegistrationState>()(
         phoneNumber: data.phoneNumber,
         password: data.password,
         confirmPassword: data.confirmPassword
+      }),
+
+      setPersonalInfo: (data) => set({
+        identityCardNumber: data.identityCardNumber,
+        homeAddress: data.homeAddress
       }),
 
       setTeachingRequirements: (requirements) => set({
@@ -112,6 +135,14 @@ export const useTutorRegistrationStore = create<TutorRegistrationState>()(
 
       removeExperience: (index) => set((state) => ({
         experiences: state.experiences.filter((_, i) => i !== index)
+      })),
+
+      addCertificate: (file) => set((state) => ({
+        certificates: [...state.certificates, file]
+      })),
+
+      removeCertificate: (index) => set((state) => ({
+        certificates: state.certificates.filter((_, i) => i !== index)
       })),
 
       reset: () => set(initialState)

@@ -97,13 +97,46 @@ const DiscussionDetail: React.FC<DiscussionDetailProps> = ({ discussionId, lang,
 		mutationFn: (commentId: number) => DiscussionService.deleteComment(commentId),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['comments', discussionId] });
-			queryClient.invalidateQueries({ queryKey: ['discussion', discussionId] });
 			setDeleteCommentId(null);
 		},
 		onError: (error: any) => {
 			setError(error?.response?.data?.message || dict.errors.failedToDeleteComment);
 		},
 	});
+
+	// Handle add comment
+	const handleAddComment = () => {
+		if (!newComment.trim()) return;
+		addCommentMutation.mutate({
+			discussionId,
+			content: newComment.trim(),
+		});
+	};
+
+	// Handle reply to comment
+	const handleReply = () => {
+		if (!replyContent.trim() || !replyToId) return;
+		addCommentMutation.mutate({
+			discussionId,
+			content: replyContent.trim(),
+			parentId: replyToId,
+		});
+	};
+
+	// Handle edit comment
+	const handleEditComment = () => {
+		if (!editContent.trim() || !editCommentId) return;
+		updateCommentMutation.mutate({
+			commentId: editCommentId,
+			content: editContent.trim(),
+		});
+	};
+
+	// Handle delete comment
+	const handleDeleteComment = () => {
+		if (!deleteCommentId) return;
+		deleteCommentMutation.mutate(deleteCommentId);
+	};
 
 	// Format date based on language
 	const formatDate = (date: string) => {
@@ -118,207 +151,136 @@ const DiscussionDetail: React.FC<DiscussionDetailProps> = ({ discussionId, lang,
 		}
 	};
 
-	// Handle submit comment
-	const handleSubmitComment = (e: React.FormEvent) => {
-		e.preventDefault();
-		setError(null);
-
-		if (!newComment.trim()) {
-			setError(dict.errors.commentRequired);
-			return;
-		}
-
-		addCommentMutation.mutate({
-			discussionId,
-			content: newComment.trim(),
-		});
-	};
-
-	// Handle submit reply
-	const handleSubmitReply = (e: React.FormEvent) => {
-		e.preventDefault();
-		setError(null);
-
-		if (!replyContent.trim() || !replyToId) {
-			setError(dict.errors.commentRequired);
-			return;
-		}
-
-		addCommentMutation.mutate({
-			discussionId,
-			content: replyContent.trim(),
-			parentId: replyToId,
-		});
-	};
-
-	// Handle edit comment
-	const handleEditComment = (comment: Comment) => {
-		setEditCommentId(comment.id);
-		setEditContent(comment.content);
-	};
-
-	// Handle submit edit
-	const handleSubmitEdit = (e: React.FormEvent) => {
-		e.preventDefault();
-		setError(null);
-
-		if (!editContent.trim() || !editCommentId) {
-			setError(dict.errors.commentRequired);
-			return;
-		}
-
-		updateCommentMutation.mutate({
-			commentId: editCommentId,
-			content: editContent.trim(),
-		});
-	};
-
-	// Handle delete comment
-	const handleDeleteComment = (commentId: number) => {
-		setDeleteCommentId(commentId);
-	};
-
-	// Handle confirm delete
-	const handleConfirmDelete = () => {
-		if (deleteCommentId) {
-			deleteCommentMutation.mutate(deleteCommentId);
-		}
-	};
-
-	// Check if user can edit/delete a comment
-	const canModifyComment = (userId: number) => {
-		return currentUserId === userId;
-	};
-
-	// Render comment item
-	const renderComment = (comment: Comment, isReply = false) => {
+	// Render comment recursively
+	const renderComment = (comment: Comment, level = 0) => {
+		const isOwner = currentUserId === comment.userId;
 		const isEditing = editCommentId === comment.id;
+		const isReplying = replyToId === comment.id;
 
 		return (
-			<div key={comment.id} className={`border-t py-4 ${isReply ? 'ml-12 border-gray-100' : 'border-gray-200'}`}>
-				<div className='flex gap-3'>
-					<Avatar className='h-8 w-8'>
+			<div key={comment.id} className={`border-l-2 border-gray-200 pl-4 ${level > 0 ? 'ml-4' : ''}`}>
+				<div className='flex gap-3 mb-2'>
+					<Avatar className='w-8 h-8'>
 						<AvatarImage src={comment.userAvatar} alt={comment.userName} />
-						<AvatarFallback>{comment.userName.charAt(0).toUpperCase()}</AvatarFallback>
+						<AvatarFallback>{comment.userName?.charAt(0)}</AvatarFallback>
 					</Avatar>
-
 					<div className='flex-1'>
-						<div className='flex justify-between'>
-							<div>
-								<span className='font-medium'>{comment.userName}</span>
-								<span className='text-xs text-gray-500 ml-2'>{formatDate(comment.createdAt)}</span>
-							</div>
-
-							{canModifyComment(comment.userId) && !isEditing && (
-								<div className='flex space-x-2'>
-									<button
-										onClick={() => handleEditComment(comment)}
-										className='text-gray-500 hover:text-gray-700'
-										aria-label={dict.common.edit}
-									>
-										<Edit size={16} />
-									</button>
-									<button
-										onClick={() => handleDeleteComment(comment.id)}
-										className='text-gray-500 hover:text-red-600'
-										aria-label={dict.common.delete}
-									>
-										<Trash2 size={16} />
-									</button>
-								</div>
-							)}
+						<div className='flex items-center gap-2 mb-1'>
+							<span className='font-medium text-sm'>{comment.userName}</span>
+							<span className='text-xs text-gray-500'>{formatDate(comment.createdAt)}</span>
 						</div>
 
 						{isEditing ? (
-							<form onSubmit={handleSubmitEdit} className='mt-2'>
+							<div className='space-y-2'>
 								<Textarea
 									value={editContent}
 									onChange={(e) => setEditContent(e.target.value)}
 									rows={3}
-									className='mb-2'
-									disabled={updateCommentMutation.isPending}
 								/>
-								<div className='flex justify-end gap-2'>
+								<div className='flex gap-2'>
 									<Button
-										type='button'
-										variant='superOutline'
 										size='sm'
-										onClick={() => setEditCommentId(null)}
+										onClick={handleEditComment}
 										disabled={updateCommentMutation.isPending}
+									>
+										{updateCommentMutation.isPending ? (
+											<Loader2 className='mr-2 h-4 w-4 animate-spin' />
+										) : null}
+										{dict.common.save}
+									</Button>
+									<Button
+										size='sm'
+										variant='outline'
+										onClick={() => {
+											setEditCommentId(null);
+											setEditContent('');
+										}}
 									>
 										{dict.common.cancel}
 									</Button>
-									<Button type='submit' size='sm' disabled={updateCommentMutation.isPending}>
-										{updateCommentMutation.isPending ? (
-											<>
-												<Loader2 className='mr-2 h-3 w-3 animate-spin' />
-												{dict.common.saving}
-											</>
-										) : (
-											dict.common.save
-										)}
-									</Button>
 								</div>
-							</form>
+							</div>
 						) : (
-							<>
-								<p className='mt-1 text-gray-700'>{comment.content}</p>
+							<div className='space-y-2'>
+								<p className='text-sm text-gray-700'>{comment.content}</p>
 
-								{!isReply && (
-									<button
+								<div className='flex items-center gap-2'>
+									<Button
+										size='sm'
+										variant='ghost'
 										onClick={() => {
 											setReplyToId(comment.id);
 											setReplyContent('');
 										}}
-										className='mt-2 flex items-center text-sm text-blue-600 hover:text-blue-800'
 									>
 										<Reply size={14} className='mr-1' />
 										{dict.common.reply}
-									</button>
-								)}
+									</Button>
 
-								{replyToId === comment.id && (
-									<form onSubmit={handleSubmitReply} className='mt-3'>
-										<Textarea
-											value={replyContent}
-											onChange={(e) => setReplyContent(e.target.value)}
-											placeholder={`${dict.learning.replyTo} ${comment.userName}...`}
-											rows={2}
-											className='mb-2 text-sm'
-											disabled={addCommentMutation.isPending}
-										/>
-										<div className='flex justify-end gap-2'>
+									{isOwner && (
+										<>
 											<Button
-												type='button'
-												variant='superOutline'
 												size='sm'
-												onClick={() => setReplyToId(null)}
-												disabled={addCommentMutation.isPending}
+												variant='ghost'
+												onClick={() => {
+													setEditCommentId(comment.id);
+													setEditContent(comment.content);
+												}}
 											>
-												{dict.common.cancel}
+												<Edit size={14} className='mr-1' />
+												{dict.common.edit}
 											</Button>
-											<Button type='submit' size='sm' disabled={addCommentMutation.isPending}>
-												{addCommentMutation.isPending ? (
-													<>
-														<Loader2 className='mr-2 h-3 w-3 animate-spin' />
-														{dict.common.sending}
-													</>
-												) : (
-													dict.common.send
-												)}
+
+											<Button
+												size='sm'
+												variant='ghost'
+												onClick={() => setDeleteCommentId(comment.id)}
+												className='text-red-600 hover:text-red-800'
+											>
+												<Trash2 size={14} className='mr-1' />
+												{dict.common.delete}
 											</Button>
-										</div>
-									</form>
-								)}
-							</>
+										</>
+									)}
+								</div>
+							</div>
+						)}
+
+						{isReplying && (
+							<div className='mt-3 space-y-2'>
+								<Textarea
+									value={replyContent}
+									onChange={(e) => setReplyContent(e.target.value)}
+									placeholder={dict.comments?.replyPlaceholder || 'Viết phản hồi...'}
+									rows={2}
+								/>
+								<div className='flex gap-2'>
+									<Button size='sm' onClick={handleReply} disabled={addCommentMutation.isPending}>
+										{addCommentMutation.isPending ? (
+											<Loader2 className='mr-2 h-4 w-4 animate-spin' />
+										) : null}
+										{dict.common.reply}
+									</Button>
+									<Button
+										size='sm'
+										variant='outline'
+										onClick={() => {
+											setReplyToId(null);
+											setReplyContent('');
+										}}
+									>
+										{dict.common.cancel}
+									</Button>
+								</div>
+							</div>
 						)}
 					</div>
 				</div>
 
 				{/* Render replies */}
-				{comment.replies &&
-					comment.replies.length > 0 &&
-					comment.replies.map((reply) => renderComment(reply, true))}
+				{comment.replies && comment.replies.length > 0 && (
+					<div className='mt-3'>{comment.replies.map((reply) => renderComment(reply, level + 1))}</div>
+				)}
 			</div>
 		);
 	};
@@ -382,44 +344,50 @@ const DiscussionDetail: React.FC<DiscussionDetailProps> = ({ discussionId, lang,
 			{/* Comments section */}
 			<div>
 				<h2 className='text-xl font-semibold mb-4'>
-					{dict.learning.comments} ({comments?.length || 0})
+					{dict.comments?.title || 'Bình luận'} ({comments?.length || 0})
 				</h2>
 
-				{/* Add comment form */}
-				<form onSubmit={handleSubmitComment} className='mb-6'>
-					{error && <div className='p-3 mb-3 text-sm bg-red-50 text-red-700 rounded-md'>{error}</div>}
-					<Textarea
-						value={newComment}
-						onChange={(e) => setNewComment(e.target.value)}
-						placeholder={dict.learning.writeComment}
-						rows={3}
-						className='mb-2'
-						disabled={addCommentMutation.isPending}
-					/>
-					<div className='flex justify-end'>
-						<Button type='submit' disabled={addCommentMutation.isPending}>
-							{addCommentMutation.isPending ? (
-								<>
-									<Loader2 className='mr-2 h-4 w-4 animate-spin' />
-									{dict.common.sending}
-								</>
-							) : (
-								<>
-									<Send size={16} className='mr-2' />
-									{dict.common.sendComment}
-								</>
-							)}
-						</Button>
+				{/* Add new comment */}
+				<div className='mb-6'>
+					<div className='flex gap-3'>
+						<Avatar className='w-8 h-8'>
+							<AvatarImage src={undefined} alt='' />
+							<AvatarFallback>U</AvatarFallback>
+						</Avatar>
+						<div className='flex-1 space-y-2'>
+							<Textarea
+								value={newComment}
+								onChange={(e) => setNewComment(e.target.value)}
+								placeholder={dict.comments?.addCommentPlaceholder || 'Viết bình luận của bạn...'}
+								rows={3}
+							/>
+							<div className='flex justify-end'>
+								<Button
+									onClick={handleAddComment}
+									disabled={addCommentMutation.isPending || !newComment.trim()}
+								>
+									{addCommentMutation.isPending ? (
+										<Loader2 className='mr-2 h-4 w-4 animate-spin' />
+									) : (
+										<Send size={16} className='mr-2' />
+									)}
+									{dict.common.submit}
+								</Button>
+							</div>
+						</div>
 					</div>
-				</form>
+				</div>
+
+				{/* Error display */}
+				{error && <div className='p-3 text-sm bg-red-50 text-red-700 rounded-md mb-4'>{error}</div>}
 
 				{/* Comments list */}
-				<div className='space-y-0'>
+				<div className='space-y-6'>
 					{comments && comments.length > 0 ? (
 						comments.map((comment) => renderComment(comment))
 					) : (
-						<div className='text-center py-8 border-t border-gray-200'>
-							<p className='text-gray-500'>{dict.learning.noComments}</p>
+						<div className='text-center py-8 text-gray-500'>
+							{dict.comments?.noComments || 'Chưa có bình luận nào. Hãy là người đầu tiên bình luận!'}
 						</div>
 					)}
 				</div>
@@ -429,20 +397,16 @@ const DiscussionDetail: React.FC<DiscussionDetailProps> = ({ discussionId, lang,
 			<AlertDialog open={!!deleteCommentId} onOpenChange={() => setDeleteCommentId(null)}>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>{dict.common.confirmDelete}</AlertDialogTitle>
-						<AlertDialogDescription>{dict.common.deleteCommentConfirmation}</AlertDialogDescription>
+						<AlertDialogTitle>{dict.comments?.deleteConfirmTitle || 'Xác nhận xóa'}</AlertDialogTitle>
+						<AlertDialogDescription>
+							{dict.comments?.deleteConfirmMessage ||
+								'Bạn có chắc chắn muốn xóa bình luận này? Hành động này không thể hoàn tác.'}
+						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
 						<AlertDialogCancel>{dict.common.cancel}</AlertDialogCancel>
-						<AlertDialogAction onClick={handleConfirmDelete} className='bg-red-600 hover:bg-red-700'>
-							{deleteCommentMutation.isPending ? (
-								<>
-									<Loader2 className='mr-2 h-4 w-4 animate-spin' />
-									{dict.common.deleting}
-								</>
-							) : (
-								dict.common.delete
-							)}
+						<AlertDialogAction onClick={handleDeleteComment} className='bg-red-600 hover:bg-red-700'>
+							{dict.common.delete}
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>

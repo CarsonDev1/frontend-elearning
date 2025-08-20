@@ -34,12 +34,15 @@ import {
 	Pencil,
 	Plus,
 	Trash,
+	ExternalLink,
+	Download,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import CertificateDisplay, { CertificateBadges } from '@/components/certificate/certificate-display';
 
 const TutorsAdmin = () => {
 	const queryClient = useQueryClient();
@@ -63,6 +66,11 @@ const TutorsAdmin = () => {
 		educations: [],
 		experiences: [],
 	});
+
+	// State for certificate management
+	const [selectedCertificateFile, setSelectedCertificateFile] = useState<File | null>(null);
+	const [uploadingCertificate, setUploadingCertificate] = useState(false);
+	const [deletingCertificateUrl, setDeletingCertificateUrl] = useState<string | null>(null);
 
 	const { data: allTutorsData, isLoading: isLoadingAll } = useQuery<any>({
 		queryKey: ['tutors', 'all', page, pageSize],
@@ -350,6 +358,64 @@ const TutorsAdmin = () => {
 		}
 	};
 
+	// Certificate management functions
+	const handleCertificateFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+		const file = event.target.files?.[0];
+		if (file) {
+			// Validate file type
+			const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+			if (!allowedTypes.includes(file.type)) {
+				toast.error('Chỉ chấp nhận file hình ảnh (JPEG, JPG, PNG, WebP)');
+				return;
+			}
+
+			// Validate file size (max 5MB)
+			if (file.size > 5 * 1024 * 1024) {
+				toast.error('Kích thước file không được vượt quá 5MB');
+				return;
+			}
+
+			setSelectedCertificateFile(file);
+		}
+	};
+
+	const handleUploadCertificate = async () => {
+		if (!selectedCertificateFile || !selectedTutorId) return;
+
+		try {
+			setUploadingCertificate(true);
+			await TutorService.uploadCertificateForTutor(selectedTutorId, selectedCertificateFile);
+
+			toast.success('Đã tải lên chứng chỉ thành công');
+			setSelectedCertificateFile(null);
+
+			// Refresh tutor data
+			queryClient.invalidateQueries({ queryKey: ['tutor', selectedTutorId] });
+		} catch (error) {
+			toast.error('Không thể tải lên chứng chỉ');
+		} finally {
+			setUploadingCertificate(false);
+		}
+	};
+
+	const handleDeleteCertificate = async (certificateUrl: string) => {
+		if (!selectedTutorId) return;
+
+		try {
+			setDeletingCertificateUrl(certificateUrl);
+			await TutorService.deleteCertificateForTutor(selectedTutorId, certificateUrl);
+
+			toast.success('Đã xóa chứng chỉ thành công');
+
+			// Refresh tutor data
+			queryClient.invalidateQueries({ queryKey: ['tutor', selectedTutorId] });
+		} catch (error) {
+			toast.error('Không thể xóa chứng chỉ');
+		} finally {
+			setDeletingCertificateUrl(null);
+		}
+	};
+
 	if (isLoadingAll || isLoadingPending) {
 		return (
 			<div className='p-6 w-full mx-auto'>
@@ -376,6 +442,7 @@ const TutorsAdmin = () => {
 							<TableHead>Email</TableHead>
 							<TableHead>Số điện thoại</TableHead>
 							<TableHead>Yêu cầu giảng dạy</TableHead>
+							<TableHead>Chứng chỉ</TableHead>
 							<TableHead>Trạng thái</TableHead>
 							<TableHead>Hành động</TableHead>
 						</TableRow>
@@ -401,6 +468,9 @@ const TutorsAdmin = () => {
 									<TableCell>{tutor.phoneNumber}</TableCell>
 									<TableCell className='max-w-xs truncate'>
 										{tutor.teachingRequirements || 'Không có'}
+									</TableCell>
+									<TableCell>
+										<CertificateBadges certificates={tutor.certificateUrls || []} />
 									</TableCell>
 									<TableCell>
 										{isPending ? (
@@ -758,6 +828,9 @@ const TutorsAdmin = () => {
 										<TabsTrigger value='overview' className='py-3'>
 											Tổng quan
 										</TabsTrigger>
+										<TabsTrigger value='certificates' className='py-3'>
+											Chứng chỉ
+										</TabsTrigger>
 									</TabsList>
 								</div>
 
@@ -859,6 +932,14 @@ const TutorsAdmin = () => {
 												</CardContent>
 											</Card>
 										</div>
+									</TabsContent>
+
+									<TabsContent value='certificates' className='mt-0'>
+										<CertificateDisplay
+											certificates={selectedTutor.certificateUrls || []}
+											title='Chứng chỉ giảng dạy'
+											showActions={true}
+										/>
 									</TabsContent>
 								</div>
 							</Tabs>
@@ -1107,8 +1188,109 @@ const TutorsAdmin = () => {
 							)}
 						</div>
 
+						{/* Certificate Management section */}
+						<div className='space-y-4 mt-6'>
+							<div className='flex items-center justify-between'>
+								<Label className='text-lg font-semibold'>Quản lý chứng chỉ</Label>
+							</div>
+
+							{/* Upload new certificate */}
+							<div className='border rounded-lg p-4 space-y-4'>
+								<Label className='text-base font-medium'>Tải lên chứng chỉ mới</Label>
+								<div className='grid w-full max-w-sm items-center gap-1.5'>
+									<Input
+										type='file'
+										accept='.jpg,.jpeg,.png,.webp'
+										onChange={handleCertificateFileSelect}
+										disabled={uploadingCertificate}
+									/>
+									<p className='text-xs text-gray-500'>Hỗ trợ JPG, PNG, WebP (tối đa 5MB)</p>
+								</div>
+
+								{selectedCertificateFile && (
+									<div className='flex items-center gap-4 p-3 bg-blue-50 rounded-lg'>
+										<Award className='h-8 w-8 text-blue-600' />
+										<div className='flex-1'>
+											<p className='font-medium text-blue-900'>{selectedCertificateFile.name}</p>
+											<p className='text-sm text-blue-600'>
+												{(selectedCertificateFile.size / 1024 / 1024).toFixed(2)} MB
+											</p>
+										</div>
+										<Button
+											onClick={handleUploadCertificate}
+											disabled={uploadingCertificate}
+											size='sm'
+											className='bg-blue-600 hover:bg-blue-700'
+										>
+											{uploadingCertificate ? 'Đang tải...' : 'Tải lên'}
+										</Button>
+									</div>
+								)}
+							</div>
+
+							{/* Current certificates */}
+							<div className='border rounded-lg p-4 space-y-4'>
+								<Label className='text-base font-medium'>
+									Chứng chỉ hiện có ({selectedTutor?.certificateUrls?.length || 0})
+								</Label>
+
+								{selectedTutor?.certificateUrls && selectedTutor.certificateUrls.length > 0 ? (
+									<div className='space-y-3'>
+										{selectedTutor.certificateUrls.map((cert: string, idx: number) => (
+											<div
+												key={idx}
+												className='flex items-center justify-between p-3 border rounded-lg'
+											>
+												<div className='flex items-center gap-3'>
+													<Award className='h-5 w-5 text-blue-600' />
+													<div>
+														<p className='text-sm font-medium'>Chứng chỉ {idx + 1}</p>
+														<p className='text-xs text-gray-500 truncate max-w-xs'>
+															{cert}
+														</p>
+													</div>
+												</div>
+												<div className='flex gap-2'>
+													<Button
+														variant='secondaryOutline'
+														size='sm'
+														onClick={() => window.open(cert, '_blank')}
+													>
+														<ExternalLink className='h-4 w-4 mr-1' />
+														Xem
+													</Button>
+													<Button
+														variant='dangerOutline'
+														size='sm'
+														onClick={() => handleDeleteCertificate(cert)}
+														disabled={deletingCertificateUrl === cert}
+													>
+														{deletingCertificateUrl === cert ? (
+															<>
+																<Loader2 className='h-4 w-4 mr-1 animate-spin' />
+																Xóa...
+															</>
+														) : (
+															<>
+																<Trash className='h-4 w-4 mr-1' />
+																Xóa
+															</>
+														)}
+													</Button>
+												</div>
+											</div>
+										))}
+									</div>
+								) : (
+									<p className='text-gray-500 text-sm italic p-2'>
+										Không có chứng chỉ nào. Tải lên chứng chỉ để xây dựng hồ sơ.
+									</p>
+								)}
+							</div>
+						</div>
+
 						{/* Experience section */}
-						<div className='space-y-4 mt-2'>
+						<div className='space-y-4 mt-6'>
 							<div className='flex items-center justify-between'>
 								<Label className='text-lg font-semibold'>Kinh nghiệm làm việc</Label>
 								<Button
