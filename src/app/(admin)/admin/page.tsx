@@ -3,7 +3,7 @@ import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import React, { useEffect } from 'react';
-import StatisticsService, { DashboardStatistics } from '@/services/statistics-service';
+import StatisticsService from '@/services/statistics-service';
 import {
 	BarChart,
 	Bar,
@@ -36,7 +36,7 @@ const Admin = () => {
 		data: statistics,
 		isLoading: isLoadingStats,
 		error,
-	} = useQuery({
+	} = useQuery<any>({
 		queryKey: ['dashboardStatistics'],
 		queryFn: () => StatisticsService.getDashboardStatistics(),
 		enabled: isAuthenticated && user?.roles?.[0] === 'ROLE_ADMIN',
@@ -86,7 +86,7 @@ const Admin = () => {
 			return [];
 		}
 
-		return statistics.recentRevenue.map((item) => ({
+		return statistics.recentRevenue.map((item: any) => ({
 			name: `${getMonthName(item.month)} ${item.year}`,
 			revenue: item.amount,
 			transactions: item.transactionCount,

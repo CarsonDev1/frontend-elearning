@@ -190,7 +190,7 @@ const DiscussionDetail: React.FC<DiscussionDetailProps> = ({ discussionId, lang,
 									</Button>
 									<Button
 										size='sm'
-										variant='outline'
+										variant='superOutline'
 										onClick={() => {
 											setEditCommentId(null);
 											setEditContent('');
@@ -263,7 +263,7 @@ const DiscussionDetail: React.FC<DiscussionDetailProps> = ({ discussionId, lang,
 									</Button>
 									<Button
 										size='sm'
-										variant='outline'
+										variant='superOutline'
 										onClick={() => {
 											setReplyToId(null);
 											setReplyContent('');

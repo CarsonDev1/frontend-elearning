@@ -95,7 +95,7 @@ export default function CertificateDisplay({ certificates, dict }: CertificateDi
 
 							<div className='flex gap-2'>
 								<Button
-									variant='outline'
+									variant='superOutline'
 									size='sm'
 									onClick={() => handleViewOnline(certificate.certificateUrl)}
 									className='flex-1'

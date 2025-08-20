@@ -95,7 +95,7 @@ export default function CertificateUploadStep({ onContinue, onBack }: Certificat
 					{/* Upload button */}
 					<Button
 						type='button'
-						variant='outline'
+						variant='superOutline'
 						onClick={() => fileInputRef.current?.click()}
 						className='w-full h-32 border-2 border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-50 transition-colors'
 					>
@@ -162,7 +162,7 @@ export default function CertificateUploadStep({ onContinue, onBack }: Certificat
 			</div>
 
 			<div className='flex justify-between pt-6'>
-				<Button type='button' variant='outline' onClick={onBack} className='flex items-center gap-2'>
+				<Button type='button' variant='superOutline' onClick={onBack} className='flex items-center gap-2'>
 					<ArrowLeft size={16} />
 					Quay lại
 				</Button>

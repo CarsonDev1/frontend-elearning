@@ -148,7 +148,7 @@ const DiscussionList: React.FC<DiscussionListProps> = ({ lessonId, lang, dict })
 				<div className='text-center py-8 border rounded-lg'>
 					<MessageCircle className='mx-auto h-12 w-12 text-gray-300' />
 					<p className='mt-2 text-gray-500'>{dict.learning.noDiscussions || 'Chưa có thảo luận nào'}</p>
-					<Button onClick={handleCreateDiscussion} variant='outline' className='mt-4'>
+					<Button onClick={handleCreateDiscussion} variant='superOutline' className='mt-4'>
 						{dict.learning.startFirstDiscussion || 'Bắt đầu thảo luận đầu tiên'}
 					</Button>
 				</div>
@@ -157,7 +157,7 @@ const DiscussionList: React.FC<DiscussionListProps> = ({ lessonId, lang, dict })
 			{/* Pagination */}
 			{discussions && discussions.totalPages > 1 && (
 				<div className='flex justify-center mt-6 gap-2'>
-					<Button variant='outline' onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0}>
+					<Button variant='superOutline' onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0}>
 						{dict.common.previous || 'Trước'}
 					</Button>
 
@@ -166,7 +166,7 @@ const DiscussionList: React.FC<DiscussionListProps> = ({ lessonId, lang, dict })
 					</span>
 
 					<Button
-						variant='outline'
+						variant='superOutline'
 						onClick={() => setPage(Math.min(discussions.totalPages - 1, page + 1))}
 						disabled={page === discussions.totalPages - 1}
 					>

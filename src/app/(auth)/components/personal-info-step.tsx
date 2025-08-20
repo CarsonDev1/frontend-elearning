@@ -103,7 +103,7 @@ export default function PersonalInfoStep({ onContinue, onBack }: PersonalInfoSte
 				</div>
 
 				<div className='flex justify-between pt-6'>
-					<Button type='button' variant='outline' onClick={onBack} className='flex items-center gap-2'>
+					<Button type='button' variant='superOutline' onClick={onBack} className='flex items-center gap-2'>
 						<ArrowLeft size={16} />
 						Quay lại
 					</Button>

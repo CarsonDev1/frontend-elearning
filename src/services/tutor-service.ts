@@ -40,7 +40,7 @@ export interface Tutor {
 }
 
 export interface Education {
-  id?: number;
+  id?: string;
   institution: string;
   degree: string;
   fieldOfStudy: string;
@@ -50,7 +50,7 @@ export interface Education {
 }
 
 export interface Experience {
-  id?: number;
+  id?: string;
   company: string;
   position: string;
   startDate: string;

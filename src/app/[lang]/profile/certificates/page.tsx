@@ -86,7 +86,7 @@ export default function CertificatesPage() {
 					<h1 className='text-3xl font-bold text-gray-900'>
 						{dict?.certificates?.pageTitle || 'Chứng chỉ của tôi'}
 					</h1>
-					<Button onClick={() => refetch()} variant='outline'>
+					<Button onClick={() => refetch()} variant='superOutline'>
 						<RefreshCw className='mr-2 h-4 w-4' />
 						{dict?.common?.refresh || 'Làm mới'}
 					</Button>
@@ -97,7 +97,11 @@ export default function CertificatesPage() {
 				{/* Pagination */}
 				{certificatesData && certificatesData.totalPages > 1 && (
 					<div className='flex justify-center mt-8 gap-2'>
-						<Button variant='outline' onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0}>
+						<Button
+							variant='superOutline'
+							onClick={() => setPage(Math.max(0, page - 1))}
+							disabled={page === 0}
+						>
 							{dict?.common?.previous || 'Trước'}
 						</Button>
 
@@ -107,7 +111,7 @@ export default function CertificatesPage() {
 						</span>
 
 						<Button
-							variant='outline'
+							variant='superOutline'
 							onClick={() => setPage(Math.min(certificatesData.totalPages - 1, page + 1))}
 							disabled={page === certificatesData.totalPages - 1}
 						>

@@ -50,7 +50,7 @@ const DocumentService = {
    */
   getSignedUrl: async (resourceId: string): Promise<string> => {
     try {
-      const documentAccess = await this.getDocument(resourceId);
+      const documentAccess = await DocumentService.getDocument(resourceId);
       return documentAccess.signedUrl;
     } catch (error: any) {
       throw handleApiError(error);
@@ -65,7 +65,7 @@ const DocumentService = {
    */
   downloadDocument: async (resourceId: string, filename?: string): Promise<Blob> => {
     try {
-      const signedUrl = await this.getSignedUrl(resourceId);
+      const signedUrl = await DocumentService.getSignedUrl(resourceId);
 
       // Use fetch to download from signed URL
       const response = await fetch(signedUrl);
@@ -101,7 +101,7 @@ const DocumentService = {
    */
   openDocument: async (resourceId: string): Promise<void> => {
     try {
-      const signedUrl = await this.getSignedUrl(resourceId);
+      const signedUrl = await DocumentService.getSignedUrl(resourceId);
       window.open(signedUrl, '_blank');
     } catch (error: any) {
       throw handleApiError(error);
@@ -115,7 +115,7 @@ const DocumentService = {
    */
   checkDocumentAccess: async (resourceId: string): Promise<boolean> => {
     try {
-      const documentAccess = await this.getDocument(resourceId);
+      const documentAccess = await DocumentService.getDocument(resourceId);
       return documentAccess.accessGranted;
     } catch (error: any) {
       // If we get an error, assume no access

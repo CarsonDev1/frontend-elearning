@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, ChangeEvent } from 'react';
 import UserService, { User } from '@/services/user-service';
-import TutorService, { Education, Experience, UpdateTutorProfileRequest } from '@/services/tutor-service';
+import TutorService, { Education, Experience } from '@/services/tutor-service';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -218,8 +218,8 @@ const ProfilePage: React.FC = () => {
 
 	// Mutation for updating tutor profile
 	const updateTutorProfileMutation = useMutation({
-		mutationFn: async (data: UpdateTutorProfileRequest) => {
-			return TutorService.updateProfile(data);
+		mutationFn: async (data: any) => {
+			return TutorService.updateTutorProfile(data.tutorId, data.profileData);
 		},
 		onSuccess: async () => {
 			await refreshUserData();
@@ -250,7 +250,7 @@ const ProfilePage: React.FC = () => {
 		// Check if the user is a tutor
 		if (user?.roles?.includes('ROLE_TUTOR')) {
 			// Prepare tutor profile data with educations and experiences
-			const tutorProfileData: UpdateTutorProfileRequest = {
+			const tutorProfileData: any = {
 				fullName: updatedUser.fullName,
 				email: updatedUser.email,
 				phoneNumber: updatedUser.phoneNumber,
@@ -287,9 +287,8 @@ const ProfilePage: React.FC = () => {
 	// Find the next available ID for education entries
 	const getNextEducationId = (): number => {
 		if (!educations || educations.length === 0) return 1;
-
 		// Find the highest ID from existing educations
-		const maxId = Math.max(...educations.map((edu) => edu.id || 0));
+		const maxId = Math.max(...educations.map((edu) => Number(edu.id) || 0));
 		return maxId + 1;
 	};
 
@@ -298,7 +297,7 @@ const ProfilePage: React.FC = () => {
 		if (!experiences || experiences.length === 0) return 1;
 
 		// Find the highest ID from existing experiences
-		const maxId = Math.max(...experiences.map((exp) => exp.id || 0));
+		const maxId = Math.max(...experiences.map((exp) => Number(exp.id) || 0));
 		return maxId + 1;
 	};
 
@@ -341,13 +340,13 @@ const ProfilePage: React.FC = () => {
 
 		if (editingEducationIndex !== null) {
 			// Edit existing education
-			newEducations[editingEducationIndex] = formattedEducation;
+			newEducations[editingEducationIndex] = formattedEducation as Education;
 		} else {
 			// Add new education with auto-generated ID
 			const newEducation = {
 				...formattedEducation,
-				id: getNextEducationId(),
-			};
+				id: getNextEducationId().toString(),
+			} as Education;
 			newEducations.push(newEducation);
 		}
 
@@ -424,13 +423,13 @@ const ProfilePage: React.FC = () => {
 
 		if (editingExperienceIndex !== null) {
 			// Edit existing experience
-			newExperiences[editingExperienceIndex] = experienceWithoutCurrent;
+			newExperiences[editingExperienceIndex] = experienceWithoutCurrent as Experience;
 		} else {
 			// Add new experience with auto-generated ID
 			const newExperience = {
 				...experienceWithoutCurrent,
-				id: getNextExperienceId(),
-			};
+				id: getNextExperienceId().toString(),
+			} as Experience;
 			newExperiences.push(newExperience);
 		}
 

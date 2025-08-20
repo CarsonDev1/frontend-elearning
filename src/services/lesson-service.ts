@@ -125,7 +125,7 @@ const LessonService = {
    */
   getLessonVideoUrl: async (lessonId: number): Promise<string> => {
     try {
-      const lesson = await this.getLessonById(lessonId);
+      const lesson = await LessonService.getLessonById(lessonId);
 
       if (!lesson.videoUrl) {
         throw new Error('Bài học này chưa có video.');
@@ -144,7 +144,7 @@ const LessonService = {
    */
   getLessonResources: async (lessonId: number): Promise<ResourceResponse[]> => {
     try {
-      const lesson = await this.getLessonById(lessonId);
+      const lesson = await LessonService.getLessonById(lessonId);
       return lesson.resources || [];
     } catch (error: any) {
       throw handleApiError(error);
@@ -158,7 +158,7 @@ const LessonService = {
    */
   getLessonExercises: async (lessonId: number): Promise<ExerciseResponse[]> => {
     try {
-      const lesson = await this.getLessonById(lessonId);
+      const lesson = await LessonService.getLessonById(lessonId);
       return lesson.exercises || [];
     } catch (error: any) {
       throw handleApiError(error);
@@ -172,7 +172,7 @@ const LessonService = {
    */
   checkVideoAccess: async (lessonId: number): Promise<boolean> => {
     try {
-      const lesson = await this.getLessonById(lessonId);
+      const lesson = await LessonService.getLessonById(lessonId);
       return lesson.canAccess !== false && !!lesson.videoUrl;
     } catch (error: any) {
       return false;
@@ -186,7 +186,7 @@ const LessonService = {
    */
   getLessonDuration: async (lessonId: number): Promise<string> => {
     try {
-      const lesson = await this.getLessonById(lessonId);
+      const lesson = await LessonService.getLessonById(lessonId);
       const duration = lesson.duration;
 
       if (duration < 60) {
