@@ -46,7 +46,7 @@ export default function WorkExperienceStep({ onContinue, onBack }: WorkExperienc
 		teachingRequirements,
 		educations,
 		experiences,
-		certificates,
+		certificateUrls,
 		addExperience,
 		removeExperience,
 		reset,
@@ -108,7 +108,7 @@ export default function WorkExperienceStep({ onContinue, onBack }: WorkExperienc
 				teachingRequirements,
 				educations,
 				experiences,
-				certificates,
+				certificateUrls,
 			};
 
 			await AuthService.registerTutor(registrationData);

@@ -36,7 +36,7 @@ export interface TutorRegisterParams {
     description: string;
     current: boolean;
   }[];
-  certificates?: File[];
+  certificateUrls?: string[];
 }
 
 export interface LoginParams {
@@ -94,13 +94,10 @@ const AuthService = {
   // Register a new user
   async register(params: RegisterParams): Promise<AuthResponse> {
     const response = await api.post<AuthResponse>('/auth/register/student', params);
-    const { token, refreshToken } = response.data;
-
-    // Save tokens to cookies with proper configuration
-    Cookies.set('token', token, {
-      ...COOKIE_OPTIONS,
-      expires: 1 // 1 day for access token
-    });
+    const { accessToken, refreshToken } = response.data;
+    
+    // Store tokens in cookies
+    Cookies.set('accessToken', accessToken, COOKIE_OPTIONS);
     Cookies.set('refreshToken', refreshToken, COOKIE_OPTIONS);
 
     return response.data;
@@ -131,14 +128,31 @@ const AuthService = {
       formData.append('experiencesJson', JSON.stringify(params.experiences));
     }
 
-    // Add certificate files
-    if (params.certificates && params.certificates.length > 0) {
-      params.certificates.forEach((file) => {
-        formData.append('certificates', file);
+    // Add certificate URLs (not files anymore)
+    if (params.certificateUrls && params.certificateUrls.length > 0) {
+      params.certificateUrls.forEach((url) => {
+        formData.append('certificateUrls', url);
       });
     }
 
     const response = await api.post('/auth/register/tutor', formData);
+    return response.data;
+  },
+
+  // Upload certificate file
+  async uploadCertificate(file: File): Promise<{ certificateUrl: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await api.post<{ certificateUrl: string }>(
+      '/auth/upload-certificate',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
     return response.data;
   },
 

@@ -41,7 +41,7 @@ interface TutorRegistrationState {
   experiences: Experience[];
 
   // Certificates
-  certificates: File[];
+  certificateUrls: string[];
 
   // Action methods
   setBasicInfo: (data: {
@@ -67,8 +67,8 @@ interface TutorRegistrationState {
   updateExperience: (index: number, experience: Experience) => void;
   removeExperience: (index: number) => void;
 
-  addCertificate: (file: File) => void;
-  removeCertificate: (index: number) => void;
+  addCertificateUrl: (url: string) => void;
+  removeCertificateUrl: (index: number) => void;
 
   reset: () => void;
 }
@@ -82,9 +82,9 @@ const initialState = {
   identityCardNumber: '',
   homeAddress: '',
   teachingRequirements: '',
-  educations: [],
-  experiences: [],
-  certificates: []
+  educations: [] as Education[],
+  experiences: [] as Experience[],
+  certificateUrls: [] as string[],
 };
 
 export const useTutorRegistrationStore = create<TutorRegistrationState>()(
@@ -137,12 +137,12 @@ export const useTutorRegistrationStore = create<TutorRegistrationState>()(
         experiences: state.experiences.filter((_, i) => i !== index)
       })),
 
-      addCertificate: (file) => set((state) => ({
-        certificates: [...state.certificates, file]
+      addCertificateUrl: (url) => set((state) => ({
+        certificateUrls: [...state.certificateUrls, url]
       })),
 
-      removeCertificate: (index) => set((state) => ({
-        certificates: state.certificates.filter((_, i) => i !== index)
+      removeCertificateUrl: (index) => set((state) => ({
+        certificateUrls: state.certificateUrls.filter((_, i) => i !== index)
       })),
 
       reset: () => set(initialState)

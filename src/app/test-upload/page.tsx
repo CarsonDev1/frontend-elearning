@@ -55,10 +55,11 @@ export default function TestUploadPage() {
 			formDataObj.append(key, value);
 		});
 
-		// Add files
-		files.forEach((file) => {
-			formDataObj.append('certificates', file);
-		});
+		// Add certificate URLs (assuming files have been uploaded and we have URLs)
+		// For testing, you would need to upload files first and get URLs
+		// files.forEach((file) => {
+		// 	formDataObj.append('certificateUrls', url);
+		// });
 
 		// Add dummy data for complex objects
 		formDataObj.append(
