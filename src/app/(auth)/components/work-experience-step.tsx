@@ -126,7 +126,6 @@ export default function WorkExperienceStep({ onContinue, onBack }: WorkExperienc
 			// This should be after onContinue to ensure the step change happens
 			reset();
 		} catch (error) {
-			console.error('Registration error:', error);
 			toast({
 				title: 'Đăng ký thất bại',
 				description: 'Có lỗi xảy ra khi tạo tài khoản. Vui lòng thử lại.',

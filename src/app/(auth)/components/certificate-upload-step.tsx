@@ -122,7 +122,7 @@ export default function CertificateUploadStep({ onContinue, onBack }: Certificat
 						<div className='space-y-2'>
 							{certificates.map((file, index) => (
 								<div
-									key={index}
+									key={`${file.name}-${file.size}-${file.lastModified || index}`}
 									className='flex items-center justify-between p-3 bg-gray-50 rounded-lg border'
 								>
 									<div className='flex items-center gap-3 flex-1 min-w-0'>

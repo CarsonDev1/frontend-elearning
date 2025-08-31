@@ -505,9 +505,9 @@ const ProfilePage: React.FC = () => {
 						<h1 className='text-xl sm:text-2xl md:text-3xl font-bold'>{user?.fullName}</h1>
 						<p className='text-sm md:text-lg text-white/90'>{user?.email}</p>
 						<div className='flex flex-wrap gap-2 mt-3 justify-center md:justify-start'>
-							{user?.roles?.map((role, index) => (
+							{user?.roles?.map((role) => (
 								<Badge
-									key={index}
+									key={role}
 									className='bg-white/20 text-white border-none hover:bg-white/30 text-xs md:text-sm'
 								>
 									{role.replace('ROLE_', '')}
@@ -672,7 +672,7 @@ const ProfilePage: React.FC = () => {
 								<div className='space-y-4 md:space-y-6'>
 									{educations.map((edu, index) => (
 										<div
-											key={index}
+											key={edu.id || `${edu.institution}-${edu.startDate}-${index}`}
 											className='p-3 md:p-4 border-2 border-gray-100 rounded-xl bg-white hover:border-primary/30 transition-colors relative group'
 										>
 											{/* Edit and Delete buttons - visible on hover */}
@@ -766,7 +766,7 @@ const ProfilePage: React.FC = () => {
 								<div className='space-y-4 md:space-y-6'>
 									{experiences.map((exp, index) => (
 										<div
-											key={index}
+											key={exp.id || `${exp.company}-${exp.startDate}-${index}`}
 											className='p-3 md:p-4 border-2 border-gray-100 rounded-xl bg-white hover:border-primary/30 transition-colors relative group'
 										>
 											{/* Edit and Delete buttons - visible on hover */}

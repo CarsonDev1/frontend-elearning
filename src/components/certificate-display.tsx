@@ -26,9 +26,12 @@ export default function CertificateDisplay({ certificates, dict }: CertificateDi
 		const link = document.createElement('a');
 		link.href = certificateUrl;
 		link.download = `certificate-${courseName.replace(/\s+/g, '-')}.pdf`;
-		document.body.appendChild(link);
-		link.click();
-		document.body.removeChild(link);
+		try {
+			document.body.appendChild(link);
+			link.click();
+		} finally {
+			link.remove();
+		}
 	};
 
 	const handleViewOnline = (certificateUrl: string) => {

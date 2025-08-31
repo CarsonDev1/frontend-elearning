@@ -59,7 +59,7 @@ function VerifyEmailContent() {
 								<div className='h-4 w-32 bg-gray-200 rounded mb-2'></div>
 								<div className='h-3 w-48 bg-gray-200 rounded'></div>
 							</div>
-						) : isSuccess ? (
+						) : !isSuccess ? (
 							<>
 								<CheckCircle className='h-12 w-12 text-green-500' />
 								<h2 className='text-2xl font-bold text-green-600'>Xác thực thành công!</h2>
@@ -70,8 +70,6 @@ function VerifyEmailContent() {
 								<h2 className='text-2xl font-bold text-red-600'>Xác thực thất bại</h2>
 							</>
 						)}
-
-						<p className='text-gray-600'>{message}</p>
 
 						<div className='pt-4'>
 							<Link href='/login'>
@@ -99,21 +97,23 @@ function VerifyEmailContent() {
 
 export default function VerifyEmailPage() {
 	return (
-		<Suspense fallback={
-			<div className='flex items-center justify-center sec-com'>
-				<Card className='w-full max-w-md shadow-lg'>
-					<CardContent className='p-6'>
-						<div className='flex flex-col items-center text-center space-y-4'>
-							<div className='animate-pulse flex flex-col items-center py-8'>
-								<div className='h-12 w-12 rounded-full bg-gray-200 mb-4'></div>
-								<div className='h-4 w-32 bg-gray-200 rounded mb-2'></div>
-								<div className='h-3 w-48 bg-gray-200 rounded'></div>
+		<Suspense
+			fallback={
+				<div className='flex items-center justify-center sec-com'>
+					<Card className='w-full max-w-md shadow-lg'>
+						<CardContent className='p-6'>
+							<div className='flex flex-col items-center text-center space-y-4'>
+								<div className='animate-pulse flex flex-col items-center py-8'>
+									<div className='h-12 w-12 rounded-full bg-gray-200 mb-4'></div>
+									<div className='h-4 w-32 bg-gray-200 rounded mb-2'></div>
+									<div className='h-3 w-48 bg-gray-200 rounded'></div>
+								</div>
 							</div>
-						</div>
-					</CardContent>
-				</Card>
-			</div>
-		}>
+						</CardContent>
+					</Card>
+				</div>
+			}
+		>
 			<VerifyEmailContent />
 		</Suspense>
 	);

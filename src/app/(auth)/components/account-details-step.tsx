@@ -59,7 +59,6 @@ export default function AccountDetailsStep({ accountType, onContinue, onBack }: 
 				});
 				onContinue();
 			} catch (error) {
-				console.error('Registration error:', error);
 				toast({
 					title: 'Đăng ký thất bại',
 					description: 'Có lỗi xảy ra khi tạo tài khoản. Vui lòng thử lại.',

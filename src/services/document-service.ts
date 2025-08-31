@@ -82,10 +82,14 @@ const DocumentService = {
         const a = document.createElement('a');
         a.href = url;
         a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
+        try {
+          document.body.appendChild(a);
+          a.click();
+        } finally {
+          // Use element.remove() to avoid NotFoundError if node was detached
+          a.remove();
+          window.URL.revokeObjectURL(url);
+        }
       }
 
       return blob;

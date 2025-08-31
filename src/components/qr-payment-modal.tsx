@@ -35,9 +35,12 @@ export default function QRPaymentModal({ isOpen, onClose, paymentData, onRefresh
 			const link = document.createElement('a');
 			link.href = paymentData.qrCodeUrl;
 			link.download = `qr-payment-${paymentData.transactionId}.png`;
-			document.body.appendChild(link);
-			link.click();
-			document.body.removeChild(link);
+			try {
+				document.body.appendChild(link);
+				link.click();
+			} finally {
+				link.remove();
+			}
 		}
 	};
 

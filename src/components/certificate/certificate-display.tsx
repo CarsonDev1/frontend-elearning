@@ -41,7 +41,12 @@ export default function CertificateDisplay({
 		const link = document.createElement('a');
 		link.href = url;
 		link.download = `certificate_${index + 1}.${getCertificateType(url).toLowerCase()}`;
-		link.click();
+		try {
+			document.body.appendChild(link);
+			link.click();
+		} finally {
+			link.remove();
+		}
 	};
 
 	if (certificates.length === 0) {
@@ -75,7 +80,7 @@ export default function CertificateDisplay({
 				<div className='space-y-4'>
 					{certificates.map((cert: string, idx: number) => (
 						<div
-							key={idx}
+							key={cert}
 							className='flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors'
 						>
 							<div className='flex items-center gap-3'>
@@ -151,7 +156,7 @@ export function CertificateBadges({ certificates, maxDisplay = 2 }: { certificat
 	return (
 		<div className='flex flex-wrap gap-1'>
 			{certificates.slice(0, maxDisplay).map((cert: string, idx: number) => (
-				<Badge key={idx} variant='secondaryOutline' className='text-xs'>
+				<Badge key={cert} variant='secondaryOutline' className='text-xs'>
 					Chứng chỉ {idx + 1}
 				</Badge>
 			))}

@@ -863,7 +863,13 @@ const TutorsAdmin = () => {
 													{selectedTutor.educations && selectedTutor.educations.length > 0 ? (
 														<div className='space-y-4'>
 															{selectedTutor.educations.map((edu: any, idx: any) => (
-																<div key={idx} className='pb-3'>
+																<div
+																	key={
+																		edu.id ||
+																		`${edu.institution}-${edu.startDate}-${idx}`
+																	}
+																	className='pb-3'
+																>
 																	<h4 className='font-medium text-base'>
 																		{edu.institution}
 																	</h4>
@@ -901,7 +907,13 @@ const TutorsAdmin = () => {
 													selectedTutor.experiences.length > 0 ? (
 														<div className='space-y-4'>
 															{selectedTutor.experiences.map((exp: any, idx: any) => (
-																<div key={idx} className='pb-3'>
+																<div
+																	key={
+																		exp.id ||
+																		`${exp.company}-${exp.startDate}-${idx}`
+																	}
+																	className='pb-3'
+																>
 																	<h4 className='font-medium text-base'>
 																		{exp.position}
 																	</h4>
@@ -1112,7 +1124,10 @@ const TutorsAdmin = () => {
 							</div>
 
 							{editProfileForm.educations.map((education: any, idx: any) => (
-								<div key={idx} className='p-4 border rounded-md space-y-4 relative'>
+								<div
+									key={education.id || `edu-${idx}`}
+									className='p-4 border rounded-md space-y-4 relative'
+								>
 									<Button
 										variant='ghost'
 										size='sm'
@@ -1238,7 +1253,7 @@ const TutorsAdmin = () => {
 									<div className='space-y-3'>
 										{selectedTutor.certificateUrls.map((cert: string, idx: number) => (
 											<div
-												key={idx}
+												key={cert}
 												className='flex items-center justify-between p-3 border rounded-lg'
 											>
 												<div className='flex items-center gap-3'>
@@ -1304,7 +1319,10 @@ const TutorsAdmin = () => {
 							</div>
 
 							{editProfileForm.experiences.map((experience: any, idx: any) => (
-								<div key={idx} className='p-4 border rounded-md space-y-4 relative'>
+								<div
+									key={experience.id || `exp-${idx}`}
+									className='p-4 border rounded-md space-y-4 relative'
+								>
 									<Button
 										variant='ghost'
 										size='sm'

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Base URL for API
-export const API_BASE_URL = 'https://api.rongvang.online/api';
+export const API_BASE_URL = 'http://localhost:8082/api';
 
 // Create an axios instance with custom config
 const api = axios.create({
@@ -45,26 +45,15 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    console.error('API Error:', error);
-
     // Handle different error scenarios
     if (error.response) {
       // Server responded with non-2xx status
-      const { status, data } = error.response;
-
-      console.log(`Error ${status}:`, data);
+      const { status } = error.response;
 
       if (status === 401) {
         // Handle auth error - redirect to login
-        console.log('Authentication error. Redirecting to login...');
         // window.location.href = '/login';
       }
-    } else if (error.request) {
-      // Request made but no response received
-      console.log('Network error. No response received.');
-    } else {
-      // Error in request setup
-      console.log('Error setting up request:', error.message);
     }
 
     return Promise.reject(error);
