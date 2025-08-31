@@ -60,6 +60,7 @@ export interface AuthResponse {
   user: User;
   data: any;
   roles: any;
+  accessToken: string;
 }
 
 export interface VerifyEmailResponse {
@@ -95,7 +96,7 @@ const AuthService = {
   async register(params: RegisterParams): Promise<AuthResponse> {
     const response = await api.post<AuthResponse>('/auth/register/student', params);
     const { accessToken, refreshToken } = response.data;
-    
+
     // Store tokens in cookies
     Cookies.set('accessToken', accessToken, COOKIE_OPTIONS);
     Cookies.set('refreshToken', refreshToken, COOKIE_OPTIONS);
