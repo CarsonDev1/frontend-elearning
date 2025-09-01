@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Sử dụng HTTPS
-export const API_BASE_URL = 'http://14.225.205.107:8082/api';
+export const API_BASE_URL = 'https://14.225.205.107/api';
 
 // Create an axios instance with custom config
 const api = axios.create({
