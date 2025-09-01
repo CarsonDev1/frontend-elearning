@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Sử dụng HTTPS
-export const API_BASE_URL = 'https://14.225.205.107/api';
+// Sử dụng domain mới với HTTPS
+export const API_BASE_URL = 'https://backendlearning.xyz/api';
 
 // Create an axios instance with custom config
 const api = axios.create({
