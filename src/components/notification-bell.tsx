@@ -12,7 +12,7 @@ import {
 	DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { notificationService, Notification } from '@/services/notification-service';
+import { NotificationService, Notification } from '@/services/notification-service';
 import { formatDistanceToNow } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
@@ -30,7 +30,7 @@ export function NotificationBell() {
 	const loadNotifications = async () => {
 		try {
 			setLoading(true);
-			const response = await notificationService.getMyNotifications(0, 10);
+			const response = await NotificationService.getMyNotifications(0, 10);
 			setNotifications(response.content);
 		} catch (error) {
 			console.error('Failed to load notifications:', error);
@@ -41,7 +41,7 @@ export function NotificationBell() {
 
 	const loadUnreadCount = async () => {
 		try {
-			const count = await notificationService.getUnreadCount();
+			const count = await NotificationService.getUnreadCount();
 			setUnreadCount(count);
 		} catch (error) {
 			console.error('Failed to load unread count:', error);
@@ -50,7 +50,7 @@ export function NotificationBell() {
 
 	const handleMarkAsRead = async (notificationId: number) => {
 		try {
-			await notificationService.markAsRead(notificationId);
+			await NotificationService.markAsRead(notificationId);
 			setNotifications((prev) =>
 				prev.map((notif) =>
 					notif.id === notificationId ? { ...notif, isRead: true, readAt: new Date().toISOString() } : notif
@@ -64,7 +64,7 @@ export function NotificationBell() {
 
 	const handleMarkAllAsRead = async () => {
 		try {
-			await notificationService.markAllAsRead();
+			await NotificationService.markAllAsRead();
 			setNotifications((prev) =>
 				prev.map((notif) => ({ ...notif, isRead: true, readAt: new Date().toISOString() }))
 			);

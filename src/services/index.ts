@@ -5,8 +5,8 @@ export { default as CourseService } from './course-service';
 export { default as UserService } from './user-service';
 export { default as EnrollmentService } from './enrollment-service';
 export { default as PaymentService } from './payment-service';
-export { default as NotificationService } from './notification-service';
 export { default as DiscussionService } from './discussion-service';
+export { default as NotificationService } from './notification-service';
 
 // AI and Content services
 export { default as AiContentService } from './ai-content-service';

@@ -1,4 +1,4 @@
-import { api } from '@/lib/api';
+import api from "@/lib/api";
 
 export interface Notification {
   id: number;
@@ -20,7 +20,7 @@ export interface NotificationResponse {
   number: number;
 }
 
-export const notificationService = {
+export const NotificationService = {
   // Get user notifications with pagination
   async getMyNotifications(page: number = 0, size: number = 20): Promise<NotificationResponse> {
     const response = await api.get(`/api/notifications/my-notifications?page=${page}&size=${size}`);
@@ -42,4 +42,6 @@ export const notificationService = {
   async markAllAsRead(): Promise<void> {
     await api.put('/api/notifications/mark-all-read');
   }
-}; 
+};
+
+export default NotificationService;
