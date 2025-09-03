@@ -32,8 +32,6 @@ export interface Combo {
   discountPercentage: number;
   thumbnailUrl: string;
   courses: Course[];
-  validUntil: string;
-  accessPeriodMonths: number;
   createdAt: string;
   updatedAt: string;
   active: boolean;
@@ -48,8 +46,6 @@ export interface ComboCreateUpdateRequest {
   thumbnailUrl: string;
   isActive: boolean;
   courseIds: number[];
-  validUntil: string;
-  accessPeriodMonths: number;
 }
 
 export interface PaginationResponse<T> {

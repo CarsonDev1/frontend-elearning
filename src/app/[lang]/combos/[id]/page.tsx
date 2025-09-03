@@ -129,7 +129,7 @@ function ComboDetailsContent() {
 	const renderPurchaseButton = () => {
 		if (!isAuthenticated) {
 			return (
-				<Link href={`/${lang}/login?redirect=${encodeURIComponent(window.location.pathname)}`}>
+				<Link href={`/login`}>
 					<Button
 						className='bg-gradient-to-r from-secondary to-secondary-600 hover:from-secondary-600 hover:to-secondary-700 text-white px-8 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105'
 						size='lg'

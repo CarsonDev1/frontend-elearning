@@ -64,7 +64,7 @@ function PurchaseContent() {
 	// Redirect to login if not authenticated
 	React.useEffect(() => {
 		if (!authLoading && !isAuthenticated) {
-			router.push(`/${lang}/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+			router.push(`/login`);
 		}
 	}, [isAuthenticated, authLoading, router, lang]);
 

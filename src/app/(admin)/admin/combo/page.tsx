@@ -229,7 +229,6 @@ const ComboAdmin = () => {
 							<TableHead className='text-emerald-900'>Giá KM</TableHead>
 							<TableHead className='text-emerald-900'>Giảm (%)</TableHead>
 							<TableHead className='text-emerald-900'>Số khóa học</TableHead>
-							<TableHead className='text-emerald-900'>Hiệu lực đến</TableHead>
 							<TableHead className='text-emerald-900'>Trạng thái</TableHead>
 							<TableHead className='text-right text-emerald-900'>Hành động</TableHead>
 						</TableRow>
@@ -278,7 +277,6 @@ const ComboAdmin = () => {
 										</Badge>
 									</TableCell>
 									<TableCell>{combo.courses?.length || 0}</TableCell>
-									<TableCell>{formatDate(combo.validUntil)}</TableCell>
 									<TableCell>
 										{combo.active ? (
 											<Badge
@@ -522,18 +520,6 @@ const ComboAdmin = () => {
 																Cập nhật lần cuối:
 															</span>
 															<span>{formatDate(selectedCombo.updatedAt)}</span>
-														</div>
-														<div className='flex justify-between items-center'>
-															<span className='text-sm text-gray-500'>Hiệu lực đến:</span>
-															<span className='font-medium'>
-																{formatDate(selectedCombo.validUntil)}
-															</span>
-														</div>
-														<div className='flex justify-between items-center'>
-															<span className='text-sm text-gray-500'>
-																Thời gian truy cập:
-															</span>
-															<span>{selectedCombo.accessPeriodMonths} tháng</span>
 														</div>
 													</div>
 												</CardContent>

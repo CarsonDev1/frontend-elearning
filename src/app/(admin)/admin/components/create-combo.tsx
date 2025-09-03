@@ -33,8 +33,6 @@ const CreateComboForm = ({ isOpen, onClose, onSuccess }: any) => {
 		thumbnailUrl: '',
 		isActive: true,
 		courseIds: [],
-		validUntil: '',
-		accessPeriodMonths: 3,
 	});
 	const [coursePage, setCoursePage] = useState(0);
 	const [coursePageSize, setCoursePagSize] = useState(20);
@@ -197,21 +195,11 @@ const CreateComboForm = ({ isOpen, onClose, onSuccess }: any) => {
 			return;
 		}
 
-		// Format validUntil as ISO 8601 with timezone
+		// Prepare payload
 		let formattedData = {
 			...formValues,
 			discountPercentage: calculateDiscountPercentage(formValues.originalPrice, formValues.discountPrice),
 		};
-
-		// Convert date string to ISO format with timezone
-		if (formValues.validUntil) {
-			// Create a date object from the input value (which is in YYYY-MM-DD format)
-			const date = new Date(formValues.validUntil);
-			// Set the time to end of day in local timezone
-			date.setHours(23, 59, 59, 999);
-			// Convert to ISO string with timezone
-			formattedData.validUntil = date.toISOString();
-		}
 
 		createComboMutation.mutate(formattedData);
 	};
@@ -233,8 +221,6 @@ const CreateComboForm = ({ isOpen, onClose, onSuccess }: any) => {
 			thumbnailUrl: '',
 			isActive: true,
 			courseIds: [],
-			validUntil: '',
-			accessPeriodMonths: 3,
 		});
 		setSelectedCourses([]);
 		setSearchQuery('');
@@ -332,37 +318,6 @@ const CreateComboForm = ({ isOpen, onClose, onSuccess }: any) => {
 								className='w-full bg-gray-50'
 							/>
 							<p className='text-xs text-gray-500'>Tự động tính toán từ giá gốc và giá khuyến mãi</p>
-						</div>
-
-						<div className='space-y-4'>
-							<Label htmlFor='accessPeriodMonths' className='text-sm font-medium'>
-								Thời hạn truy cập (tháng) <span className='text-red-600'>*</span>
-							</Label>
-							<Input
-								id='accessPeriodMonths'
-								name='accessPeriodMonths'
-								type='number'
-								min='1'
-								value={formValues.accessPeriodMonths}
-								onChange={handleInputChange}
-								required
-								className='w-full'
-							/>
-						</div>
-
-						<div className='space-y-4'>
-							<Label htmlFor='validUntil' className='text-sm font-medium'>
-								Hiệu lực đến ngày <span className='text-red-600'>*</span>
-							</Label>
-							<Input
-								id='validUntil'
-								name='validUntil'
-								type='date'
-								value={formValues.validUntil}
-								onChange={handleInputChange}
-								required
-								className='w-full'
-							/>
 						</div>
 
 						<div className='space-y-4'>

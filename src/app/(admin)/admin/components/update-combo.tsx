@@ -33,8 +33,6 @@ const UpdateComboForm = ({ isOpen, onClose, comboId, onSuccess }: any) => {
 		thumbnailUrl: '',
 		isActive: true,
 		courseIds: [],
-		validUntil: '',
-		accessPeriodMonths: 3,
 	});
 	const [coursePage, setCoursePage] = useState(0);
 	const [coursePageSize, setCoursePagSize] = useState(20);
@@ -85,13 +83,6 @@ const UpdateComboForm = ({ isOpen, onClose, comboId, onSuccess }: any) => {
 	// Initialize form values when combo data is loaded
 	useEffect(() => {
 		if (comboData) {
-			// Format the validUntil date from ISO to YYYY-MM-DD for the date input
-			let validUntilFormatted = '';
-			if (comboData.validUntil) {
-				const date = new Date(comboData.validUntil);
-				validUntilFormatted = date.toISOString().split('T')[0];
-			}
-
 			setFormValues({
 				title: comboData.title || '',
 				description: comboData.description || '',
@@ -101,8 +92,6 @@ const UpdateComboForm = ({ isOpen, onClose, comboId, onSuccess }: any) => {
 				thumbnailUrl: comboData.thumbnailUrl || '',
 				isActive: comboData.active || false,
 				courseIds: comboData.courses?.map((course: any) => course.id) || [],
-				validUntil: validUntilFormatted,
-				accessPeriodMonths: comboData.accessPeriodMonths || 3,
 			});
 
 			// Set selected courses
@@ -369,37 +358,6 @@ const UpdateComboForm = ({ isOpen, onClose, comboId, onSuccess }: any) => {
 								className='w-full bg-gray-50'
 							/>
 							<p className='text-xs text-gray-500'>Tự động tính toán từ giá gốc và giá khuyến mãi</p>
-						</div>
-
-						<div className='space-y-4'>
-							<Label htmlFor='accessPeriodMonths' className='text-sm font-medium'>
-								Thời hạn truy cập (tháng) <span className='text-red-600'>*</span>
-							</Label>
-							<Input
-								id='accessPeriodMonths'
-								name='accessPeriodMonths'
-								type='number'
-								min='1'
-								value={formValues.accessPeriodMonths}
-								onChange={handleInputChange}
-								required
-								className='w-full'
-							/>
-						</div>
-
-						<div className='space-y-4'>
-							<Label htmlFor='validUntil' className='text-sm font-medium'>
-								Hiệu lực đến ngày <span className='text-red-600'>*</span>
-							</Label>
-							<Input
-								id='validUntil'
-								name='validUntil'
-								type='date'
-								value={formValues.validUntil}
-								onChange={handleInputChange}
-								required
-								className='w-full'
-							/>
 						</div>
 
 						<div className='space-y-4'>

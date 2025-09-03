@@ -119,9 +119,7 @@ const ResultModal = ({ isOpen, onClose, result, onNext }: ResultModalProps) => {
 						) : (
 							<XCircle className='h-6 w-6 text-yellow-500' />
 						)}
-						<DialogTitle className='text-xl'>
-							{isActuallyPassed ? '🎉 Bài tập hoàn thành!' : '💪 Cần cải thiện'}
-						</DialogTitle>
+						<DialogTitle className='text-xl'>Kết quả</DialogTitle>
 					</div>
 				</DialogHeader>
 

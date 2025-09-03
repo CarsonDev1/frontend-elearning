@@ -30,20 +30,6 @@ export default function QRPaymentModal({ isOpen, onClose, paymentData, onRefresh
 		}
 	};
 
-	const handleDownloadQR = () => {
-		if (paymentData?.qrCodeUrl) {
-			const link = document.createElement('a');
-			link.href = paymentData.qrCodeUrl;
-			link.download = `qr-payment-${paymentData.transactionId}.png`;
-			try {
-				document.body.appendChild(link);
-				link.click();
-			} finally {
-				link.remove();
-			}
-		}
-	};
-
 	const handleRefresh = async () => {
 		if (onRefresh) {
 			setIsRefreshing(true);
@@ -116,19 +102,7 @@ export default function QRPaymentModal({ isOpen, onClose, paymentData, onRefresh
 						</CardHeader>
 						<CardContent className='flex flex-col items-center space-y-4'>
 							<div className='relative'>
-								<img
-									src={paymentData.qrCodeUrl}
-									alt='QR Code'
-									className='w-48 h-48 border rounded-lg'
-								/>
-								<Button
-									size='sm'
-									variant='superOutline'
-									className='absolute top-2 right-2'
-									onClick={handleDownloadQR}
-								>
-									<Download className='w-4 h-4' />
-								</Button>
+								<img src='/images/qrcode.png' alt='QR Code' className='w-48 h-48 border rounded-lg' />
 							</div>
 							<div className='text-center'>
 								<p className='text-sm text-gray-600'>Mã giao dịch:</p>
@@ -153,7 +127,7 @@ export default function QRPaymentModal({ isOpen, onClose, paymentData, onRefresh
 										{paymentData.amount.toLocaleString('vi-VN')} VND
 									</span>
 								</div>
-								<div className='bg-gray-50 p-3 rounded-lg'>
+								{/* <div className='bg-gray-50 p-3 rounded-lg'>
 									<pre className='text-sm whitespace-pre-wrap font-mono'>
 										{paymentData.bankAccountInfo}
 									</pre>
@@ -166,7 +140,7 @@ export default function QRPaymentModal({ isOpen, onClose, paymentData, onRefresh
 								>
 									<Copy className='w-4 h-4 mr-2' />
 									Sao chép thông tin
-								</Button>
+								</Button> */}
 							</div>
 						</CardContent>
 					</Card>
@@ -179,7 +153,7 @@ export default function QRPaymentModal({ isOpen, onClose, paymentData, onRefresh
 						<CardContent className='space-y-2'>
 							<div className='flex justify-between'>
 								<span className='text-sm text-gray-600'>Nội dung:</span>
-								<span className='text-sm font-medium'>{paymentData.orderInfo}</span>
+								<span className='text-sm font-medium'>Email của bạn</span>
 							</div>
 							<div className='flex justify-between'>
 								<span className='text-sm text-gray-600'>Thời gian tạo:</span>
@@ -207,11 +181,11 @@ export default function QRPaymentModal({ isOpen, onClose, paymentData, onRefresh
 					</div>
 
 					{/* Status Message */}
-					{paymentData.message && (
+					{/* {paymentData.message && (
 						<div className='bg-blue-50 border border-blue-200 rounded-lg p-3'>
 							<p className='text-sm text-blue-800'>{paymentData.message}</p>
 						</div>
-					)}
+					)} */}
 				</div>
 			</DialogContent>
 		</Dialog>

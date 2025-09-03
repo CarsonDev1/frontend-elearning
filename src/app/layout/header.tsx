@@ -13,7 +13,7 @@ import { ChevronDown, BookOpen, UserCog, LogOut } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import NotificationCenter from '@/components/notification-center';
+import { NotificationBell } from '@/components/notification-bell';
 
 interface Language {
 	code: string;
@@ -182,7 +182,7 @@ const Header = () => {
 
 						<div className='flex items-center space-x-4'>
 							{/* Notification Center - Only show for authenticated users */}
-							{user && <NotificationCenter className='mr-2' />}
+							{user && <NotificationBell />}
 
 							{/* Language Selector */}
 							<DropdownMenu>

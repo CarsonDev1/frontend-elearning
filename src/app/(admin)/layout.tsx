@@ -2,6 +2,7 @@ import { AppProviders } from '@/providers';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppBreadcrumb } from '@/components/app-breadcrumb';
+import { NotificationBell } from '@/components/notification-bell';
 import { Toaster } from '@/components/ui/sonner';
 import { Nunito } from 'next/font/google';
 import '../globals.css';
@@ -21,9 +22,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 					<SidebarProvider>
 						<AppSidebar />
 						<main className='p-4 w-full'>
-							<div className='flex items-center mb-4'>
-								<SidebarTrigger />
-								<AppBreadcrumb />
+							<div className='flex items-center justify-between mb-4'>
+								<div className='flex items-center'>
+									<SidebarTrigger />
+									<AppBreadcrumb />
+								</div>
+								<NotificationBell />
 							</div>
 							{children}
 							<Toaster richColors />
