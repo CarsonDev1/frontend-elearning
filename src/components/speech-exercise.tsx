@@ -371,7 +371,7 @@ const SpeechExerciseComponent: React.FC<SpeechExerciseComponentProps> = ({
 					confidenceScore,
 					pronunciationFeedback: isPassed
 						? 'Xuất sắc! Phát âm của bạn rất chính xác.'
-						: 'Cần cải thiện. Hãy lắng nghe kỹ hơn và thực hành thêm.',
+						: 'Kết quả. Hãy lắng nghe kỹ hơn và thực hành thêm.',
 					isPassed,
 					attemptNumber,
 					timeSpentSeconds: timeSpent,
@@ -413,7 +413,7 @@ const SpeechExerciseComponent: React.FC<SpeechExerciseComponentProps> = ({
 						backendResult.pronunciationFeedback ||
 						(backendResult.isPass
 							? 'Xuất sắc! Phát âm của bạn rất chính xác.'
-							: 'Cần cải thiện. Hãy lắng nghe kỹ hơn và thực hành thêm.'),
+							: 'Kết quả. Hãy lắng nghe kỹ hơn và thực hành thêm.'),
 					isPassed: backendResult.isPass, // Map isPass to isPassed
 					attemptNumber: backendResult.attemptNumber,
 					timeSpentSeconds: backendResult.timeSpentSeconds,
@@ -1016,7 +1016,7 @@ const SpeechExerciseComponent: React.FC<SpeechExerciseComponentProps> = ({
 											result.isPassed ? 'text-green-700' : 'text-yellow-700'
 										}`}
 									>
-										{result.isPassed ? '🎉 Xuất sắc!' : '💪 Cần cải thiện'}
+										{result.isPassed ? '🎉 Xuất sắc!' : '💪 Kết quả'}
 									</h3>
 								</div>
 

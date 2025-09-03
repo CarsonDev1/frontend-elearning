@@ -55,17 +55,17 @@ const ResultModal = ({ isOpen, onClose, result, onNext }: ResultModalProps) => {
 		if (score >= 95) {
 			return 'Phát âm tuyệt vời! Bạn đã phát âm chính xác như người bản xứ.';
 		} else if (score >= 90) {
-			return 'Phát âm rất tốt! Chỉ còn một vài điểm nhỏ cần cải thiện.';
+			return 'Phát âm rất tốt! Chỉ còn một vài điểm nhỏ để hoàn thiện.';
 		} else if (score >= 80) {
 			return 'Phát âm tốt! Người nghe có thể hiểu bạn dễ dàng, nhưng vẫn còn chỗ để cải thiện.';
 		} else if (score >= 70) {
-			return 'Phát âm khá tốt. Hãy chú ý đến ngữ điệu và cách nhấn âm để cải thiện hơn nữa.';
+			return 'Phát âm khá tốt. Hãy chú ý đến ngữ điệu và cách nhấn âm để hoàn thiện hơn nữa.';
 		} else if (score >= 60) {
-			return 'Phát âm chấp nhận được nhưng cần cải thiện. Hãy luyện tập thêm với từng âm tiết.';
+			return 'Phát âm chấp nhận được nhưng cần hoàn thiện. Hãy luyện tập thêm với từng âm tiết.';
 		} else if (score >= 50) {
-			return 'Phát âm còn nhiều chỗ cần cải thiện. Hãy nghe kỹ mẫu và tập lại từng từ một.';
+			return 'Phát âm còn nhiều chỗ cần hoàn thiện. Hãy nghe kỹ mẫu và tập lại từng từ một.';
 		} else {
-			return 'Phát âm cần được cải thiện nhiều. Hãy tập trung vào từng âm tiết và nghe mẫu nhiều lần.';
+			return 'Phát âm cần được hoàn thiện nhiều. Hãy tập trung vào từng âm tiết và nghe mẫu nhiều lần.';
 		}
 	};
 
