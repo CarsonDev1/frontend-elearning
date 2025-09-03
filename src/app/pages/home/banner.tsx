@@ -169,9 +169,11 @@ const Banner = ({ dictionary }: BannerProps) => {
 					<div className='relative pt-[56.25%] w-full'>
 						<iframe
 							className='absolute top-0 left-0 w-full h-full rounded-lg'
-							src='https://www.youtube.com/embed/LTejJnrzGPM'
+							width='560'
+							height='315'
+							src='https://www.youtube.com/embed/-xoMTodQRlc?si=bb_42fHTXXL8wp7i&amp;start=2'
 							title='JPE Demo Video'
-							allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
+							allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'
 							allowFullScreen
 						></iframe>
 					</div>
