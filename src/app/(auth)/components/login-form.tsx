@@ -11,37 +11,39 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import AuthService, { LoginParams } from '@/lib/auth-service';
 import { useToast } from '@/hooks/use-toast';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 
-interface LoginFormData {
-	email: string;
-	password: string;
-}
+const loginSchema = z.object({
+	email: z.string().min(1, 'Vui lòng nhập email').email('Email không hợp lệ'),
+	password: z.string().min(6, 'Mật khẩu tối thiểu 6 ký tự'),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginForm() {
 	const { toast } = useToast();
 	const router = useRouter();
-	const [formData, setFormData] = useState<LoginFormData>({
-		email: '',
-		password: '',
-	});
-
 	const [showPassword, setShowPassword] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 
-	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const { name, value } = e.target;
-		setFormData((prev) => ({ ...prev, [name]: value }));
-	};
+	const {
+		register,
+		handleSubmit,
+		formState: { errors },
+	} = useForm<LoginFormData>({
+		resolver: zodResolver(loginSchema),
+		mode: 'onTouched',
+	});
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
+	const onSubmit = async (data: LoginFormData) => {
 		setIsLoading(true);
 
 		try {
-			// Use AuthService to login
 			const loginParams: LoginParams = {
-				email: formData.email,
-				password: formData.password,
+				email: data.email,
+				password: data.password,
 			};
 
 			const response = await AuthService.login(loginParams);
@@ -78,31 +80,26 @@ export default function LoginForm() {
 
 	return (
 		<Card className='border-none shadow-none'>
-			<form onSubmit={handleSubmit}>
+			<form onSubmit={handleSubmit(onSubmit)}>
 				<CardContent className='pt-6 space-y-4'>
 					<div className='space-y-2'>
 						<Input
 							id='email'
-							name='email'
-							type='email'
 							placeholder='Email'
-							value={formData.email}
-							onChange={handleChange}
-							required
 							autoComplete='email'
+							{...register('email')}
+							type='email'
 						/>
+						{errors.email && <p className='text-red-500 text-xs'>{errors.email.message}</p>}
 					</div>
 					<div className='space-y-2'>
 						<div className='relative'>
 							<Input
 								id='password'
-								name='password'
-								type={showPassword ? 'text' : 'password'}
 								placeholder='Mật khẩu'
-								value={formData.password}
-								onChange={handleChange}
-								required
 								autoComplete='current-password'
+								{...register('password')}
+								type={showPassword ? 'text' : 'password'}
 							/>
 							<Button
 								type='button'
@@ -119,6 +116,7 @@ export default function LoginForm() {
 								)}
 							</Button>
 						</div>
+						{errors.password && <p className='text-red-500 text-xs'>{errors.password.message}</p>}
 						<div className='flex items-end justify-end'>
 							<Link
 								href='/forgot-password'

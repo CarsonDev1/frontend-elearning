@@ -11,6 +11,9 @@ import { Eye, EyeOff } from 'lucide-react';
 import AuthService, { RegisterParams } from '@/lib/auth-service';
 import { useToast } from '@/hooks/use-toast';
 import { useTutorRegistrationStore } from '@/store/tutor-registration-store';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 interface AccountDetailsStepProps {
 	accountType: AccountType;
@@ -18,37 +21,52 @@ interface AccountDetailsStepProps {
 	onBack?: () => void;
 }
 
+const accountDetailsSchema = z
+	.object({
+		fullName: z.string().min(2, 'Họ tên tối thiểu 2 ký tự'),
+		email: z.string().min(1, 'Vui lòng nhập email').email('Email không hợp lệ'),
+		phoneNumber: z
+			.string()
+			.min(9, 'Số điện thoại phải có 9-11 chữ số')
+			.max(11, 'Số điện thoại phải có 9-11 chữ số')
+			.regex(/^\d+$/, 'Số điện thoại chỉ gồm chữ số'),
+		password: z
+			.string()
+			.min(6, 'Mật khẩu tối thiểu 6 ký tự')
+			.regex(/^(?=.*[A-Za-z])(?=.*\d).+$/, 'Mật khẩu phải có chữ và số'),
+		confirmPassword: z.string().min(6, 'Xác nhận mật khẩu tối thiểu 6 ký tự'),
+	})
+	.refine((data) => data.password === data.confirmPassword, {
+		message: 'Mật khẩu nhập lại không khớp',
+		path: ['confirmPassword'],
+	});
+
+type AccountDetailsFormData = z.infer<typeof accountDetailsSchema>;
+
 export default function AccountDetailsStep({ accountType, onContinue, onBack }: AccountDetailsStepProps) {
 	const { toast } = useToast();
 	const setBasicInfo = useTutorRegistrationStore((state) => state.setBasicInfo);
 
-	const [formData, setFormData] = useState({
-		fullName: '',
-		email: '',
-		phoneNumber: '',
-		password: '',
-		confirmPassword: '',
-	});
 	const [isLoading, setIsLoading] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const { name, value } = e.target;
-		setFormData((prev) => ({ ...prev, [name]: value }));
-	};
+	const {
+		register,
+		handleSubmit,
+		formState: { errors },
+	} = useForm<AccountDetailsFormData>({
+		resolver: zodResolver(accountDetailsSchema),
+		mode: 'onTouched',
+	});
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault();
-
+	const onSubmit = async (data: AccountDetailsFormData) => {
 		if (accountType === 'student') {
 			setIsLoading(true);
 			try {
-				// Keep phoneNumber as string to preserve leading zeros
-				// The API will handle the conversion appropriately
 				const registerParams: RegisterParams = {
-					...formData,
-					phoneNumber: formData.phoneNumber,
+					...data,
+					phoneNumber: data.phoneNumber,
 				};
 
 				await AuthService.register(registerParams);
@@ -68,21 +86,9 @@ export default function AccountDetailsStep({ accountType, onContinue, onBack }: 
 				setIsLoading(false);
 			}
 		} else {
-			// For tutor registration, store data in Zustand and continue
-			setBasicInfo(formData);
+			setBasicInfo(data);
 			onContinue();
 		}
-	};
-
-	const isFormValid = () => {
-		return (
-			formData.fullName.trim() !== '' &&
-			formData.email.trim() !== '' &&
-			formData.phoneNumber.trim() !== '' &&
-			formData.password.trim() !== '' &&
-			formData.confirmPassword.trim() !== '' &&
-			formData.password === formData.confirmPassword
-		);
 	};
 
 	const toggleShowPassword = () => setShowPassword(!showPassword);
@@ -101,43 +107,23 @@ export default function AccountDetailsStep({ accountType, onContinue, onBack }: 
 				</p>
 			</div>
 
-			<form onSubmit={handleSubmit} className='space-y-4'>
+			<form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
 				<div className='space-y-2'>
 					<Label htmlFor='fullName'>Họ tên</Label>
-					<Input
-						id='fullName'
-						name='fullName'
-						placeholder='Nguyen Van A'
-						value={formData.fullName}
-						onChange={handleChange}
-						required
-					/>
+					<Input id='fullName' placeholder='Nguyen Van A' {...register('fullName')} />
+					{errors.fullName && <p className='text-red-500 text-xs'>{errors.fullName.message}</p>}
 				</div>
 
 				<div className='space-y-2'>
 					<Label htmlFor='email'>Email</Label>
-					<Input
-						id='email'
-						name='email'
-						type='email'
-						placeholder='nguyenvana@example.com'
-						value={formData.email}
-						onChange={handleChange}
-						required
-					/>
+					<Input id='email' type='email' placeholder='nguyenvana@example.com' {...register('email')} />
+					{errors.email && <p className='text-red-500 text-xs'>{errors.email.message}</p>}
 				</div>
 
 				<div className='space-y-2'>
 					<Label htmlFor='phoneNumber'>Số điện thoại</Label>
-					<Input
-						id='phoneNumber'
-						name='phoneNumber'
-						type='tel'
-						placeholder='0123456789'
-						value={formData.phoneNumber}
-						onChange={handleChange}
-						required
-					/>
+					<Input id='phoneNumber' type='tel' placeholder='0123456789' {...register('phoneNumber')} />
+					{errors.phoneNumber && <p className='text-red-500 text-xs'>{errors.phoneNumber.message}</p>}
 				</div>
 
 				<div className='space-y-2'>
@@ -145,12 +131,9 @@ export default function AccountDetailsStep({ accountType, onContinue, onBack }: 
 					<div className='relative'>
 						<Input
 							id='password'
-							name='password'
 							type={showPassword ? 'text' : 'password'}
 							placeholder='************'
-							value={formData.password}
-							onChange={handleChange}
-							required
+							{...register('password')}
 						/>
 						<button
 							type='button'
@@ -160,6 +143,7 @@ export default function AccountDetailsStep({ accountType, onContinue, onBack }: 
 						>
 							{showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
 						</button>
+						{errors.password && <p className='text-red-500 text-xs mt-1'>{errors.password.message}</p>}
 					</div>
 				</div>
 
@@ -168,12 +152,9 @@ export default function AccountDetailsStep({ accountType, onContinue, onBack }: 
 					<div className='relative'>
 						<Input
 							id='confirmPassword'
-							name='confirmPassword'
 							type={showConfirmPassword ? 'text' : 'password'}
 							placeholder='************'
-							value={formData.confirmPassword}
-							onChange={handleChange}
-							required
+							{...register('confirmPassword')}
 						/>
 						<button
 							type='button'
@@ -183,10 +164,13 @@ export default function AccountDetailsStep({ accountType, onContinue, onBack }: 
 						>
 							{showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
 						</button>
+						{errors.confirmPassword && (
+							<p className='text-red-500 text-xs mt-1'>{errors.confirmPassword.message}</p>
+						)}
 					</div>
 				</div>
 
-				<Button type='submit' className='w-full' variant='secondary' disabled={!isFormValid() || isLoading}>
+				<Button type='submit' className='w-full' variant='secondary' disabled={isLoading}>
 					{isLoading ? 'Đang xử lý...' : 'Tiếp tục'}
 				</Button>
 
