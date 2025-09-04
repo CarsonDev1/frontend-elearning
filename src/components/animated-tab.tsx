@@ -67,6 +67,16 @@ const AnimatedTab: FC<AnimatedTabProps> = ({ activeTab, setActiveTab }) => {
 					<Briefcase className={`${isMobile ? 'mr-0' : 'mr-2'} h-4 w-4`} />
 					<span className={isMobile ? 'hidden md:inline' : ''}>Kinh nghiệm</span>
 				</li>
+
+				<li
+					className={`flex-1 flex justify-center items-center py-2 z-10 transition duration-300 cursor-pointer ${
+						activeTab === 4 ? 'text-white font-medium' : 'text-gray-600'
+					}`}
+					onClick={() => setActiveTab(4)}
+				>
+					<Briefcase className={`${isMobile ? 'mr-0' : 'mr-2'} h-4 w-4`} />
+					<span className={isMobile ? 'hidden md:inline' : ''}>Chứng chỉ</span>
+				</li>
 			</ul>
 		</div>
 	);
