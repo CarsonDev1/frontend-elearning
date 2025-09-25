@@ -74,10 +74,10 @@ function CoursesContent({ dictionary, currentLocale }: { dictionary: any; curren
 					selectedSort === 'price_high'
 						? 'desc'
 						: selectedSort === 'price_low'
-							? 'asc'
-							: selectedSort === 'oldest'
-								? 'asc'
-								: 'desc';
+						? 'asc'
+						: selectedSort === 'oldest'
+						? 'asc'
+						: 'desc';
 
 				const response = await CourseService.getPublicCourses(page, 12, sortBy, direction);
 
@@ -166,7 +166,7 @@ function CoursesContent({ dictionary, currentLocale }: { dictionary: any; curren
 
 	// Format price for display
 	const formatPriceRange = (value: number) => {
-		return formatPrice(value, lang === 'jp' ? 'ja-JP' : 'vi-VN', lang === 'jp' ? 'JPY' : 'VND');
+		return formatPrice(value, 'vi-VN', 'VND');
 	};
 
 	// Pagination controls
@@ -362,54 +362,54 @@ function CoursesContent({ dictionary, currentLocale }: { dictionary: any; curren
 										searchTerm ||
 										priceRange[0] > 0 ||
 										priceRange[1] < 5000000) && (
-											<div className='mb-6'>
-												<h4 className='font-medium text-gray-900 mb-3'>
-													{dict?.courses?.activeFilters || 'Active Filters'}
-												</h4>
-												<div className='flex flex-wrap gap-2'>
-													{searchTerm && (
-														<Badge
-															variant='outline'
-															className='flex items-center gap-1 px-3 py-1'
-														>
-															{searchTerm}
-															<X
-																className='h-3 w-3 cursor-pointer'
-																onClick={() => setSearchTerm('')}
-															/>
-														</Badge>
-													)}
+										<div className='mb-6'>
+											<h4 className='font-medium text-gray-900 mb-3'>
+												{dict?.courses?.activeFilters || 'Active Filters'}
+											</h4>
+											<div className='flex flex-wrap gap-2'>
+												{searchTerm && (
+													<Badge
+														variant='outline'
+														className='flex items-center gap-1 px-3 py-1'
+													>
+														{searchTerm}
+														<X
+															className='h-3 w-3 cursor-pointer'
+															onClick={() => setSearchTerm('')}
+														/>
+													</Badge>
+												)}
 
-													{selectedLevels.map((level) => (
-														<Badge
-															key={level}
-															variant='outline'
-															className='flex items-center gap-1 px-3 py-1'
-														>
-															{level}
-															<X
-																className='h-3 w-3 cursor-pointer'
-																onClick={() => toggleLevel(level)}
-															/>
-														</Badge>
-													))}
+												{selectedLevels.map((level) => (
+													<Badge
+														key={level}
+														variant='outline'
+														className='flex items-center gap-1 px-3 py-1'
+													>
+														{level}
+														<X
+															className='h-3 w-3 cursor-pointer'
+															onClick={() => toggleLevel(level)}
+														/>
+													</Badge>
+												))}
 
-													{(priceRange[0] > 0 || priceRange[1] < 5000000) && (
-														<Badge
-															variant='outline'
-															className='flex items-center gap-1 px-3 py-1'
-														>
-															{formatPriceRange(priceRange[0])} -{' '}
-															{formatPriceRange(priceRange[1])}
-															<X
-																className='h-3 w-3 cursor-pointer'
-																onClick={() => setPriceRange([0, 5000000])}
-															/>
-														</Badge>
-													)}
-												</div>
+												{(priceRange[0] > 0 || priceRange[1] < 5000000) && (
+													<Badge
+														variant='outline'
+														className='flex items-center gap-1 px-3 py-1'
+													>
+														{formatPriceRange(priceRange[0])} -{' '}
+														{formatPriceRange(priceRange[1])}
+														<X
+															className='h-3 w-3 cursor-pointer'
+															onClick={() => setPriceRange([0, 5000000])}
+														/>
+													</Badge>
+												)}
 											</div>
-										)}
+										</div>
+									)}
 								</div>
 							</div>
 
@@ -472,10 +472,11 @@ function CoursesContent({ dictionary, currentLocale }: { dictionary: any; curren
 								{/* Courses Grid/List */}
 								{isCoursesLoading ? (
 									<div
-										className={`grid ${viewMode === 'grid'
+										className={`grid ${
+											viewMode === 'grid'
 												? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
 												: 'grid-cols-1'
-											} gap-6`}
+										} gap-6`}
 									>
 										{[1, 2, 3, 4, 5, 6].map((i) => (
 											<CourseSkeleton key={i} />
@@ -483,10 +484,11 @@ function CoursesContent({ dictionary, currentLocale }: { dictionary: any; curren
 									</div>
 								) : coursesData?.content?.length && coursesData?.content?.length > 0 ? (
 									<div
-										className={`grid ${viewMode === 'grid'
+										className={`grid ${
+											viewMode === 'grid'
 												? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
 												: 'grid-cols-1'
-											} gap-6`}
+										} gap-6`}
 									>
 										{coursesData.content.map((course: any, index: number) => (
 											<CourseCard
@@ -607,21 +609,23 @@ function CoursesContent({ dictionary, currentLocale }: { dictionary: any; curren
 
 const CoursesPage = ({ dictionary, currentLocale }: { dictionary: any; currentLocale: string }) => {
 	return (
-		<Suspense fallback={
-			<div className='bg-white'>
-				<div className='sec-com'>
-					<div className='py-16'>
-						<div className='container-lg'>
-							<div className='animate-pulse'>
-								<div className='h-8 bg-gray-200 rounded w-1/3 mb-4'></div>
-								<div className='h-4 bg-gray-200 rounded w-1/2 mb-8'></div>
-								<div className='h-12 bg-gray-200 rounded w-full max-w-2xl'></div>
+		<Suspense
+			fallback={
+				<div className='bg-white'>
+					<div className='sec-com'>
+						<div className='py-16'>
+							<div className='container-lg'>
+								<div className='animate-pulse'>
+									<div className='h-8 bg-gray-200 rounded w-1/3 mb-4'></div>
+									<div className='h-4 bg-gray-200 rounded w-1/2 mb-8'></div>
+									<div className='h-12 bg-gray-200 rounded w-full max-w-2xl'></div>
+								</div>
 							</div>
 						</div>
 					</div>
 				</div>
-			</div>
-		}>
+			}
+		>
 			<CoursesContent dictionary={dictionary} currentLocale={currentLocale} />
 		</Suspense>
 	);

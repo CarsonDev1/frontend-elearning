@@ -24,7 +24,6 @@ import { Loader2Icon } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 
-// Bảng màu lấy cảm hứng từ Duolingo
 const COLORS = ['#58cc02', '#ff9600', '#ff4b4b', '#1cb0f6', '#ce82ff', '#ffc800'];
 
 const Admin = () => {

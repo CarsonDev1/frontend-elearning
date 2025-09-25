@@ -13,7 +13,6 @@ interface ComboCardProps {
 
 const ComboCard = ({ combo, index, dictionary = {}, currentLocale }: ComboCardProps) => {
 	const hasDiscount = combo.originalPrice && combo.discountPrice && combo.originalPrice > combo.discountPrice;
-	// Ensure dictionary and combos exist to prevent errors
 	const dict = dictionary || {};
 	const comboDict = dict.combos || {};
 
@@ -24,7 +23,7 @@ const ComboCard = ({ combo, index, dictionary = {}, currentLocale }: ComboCardPr
 				<div className='absolute top-4 left-4 z-10'>
 					<div className='bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-1 rounded-full shadow-lg flex items-center gap-1'>
 						<Percent className='w-3 h-3' />
-						<span className='text-xs font-bold'>SALE</span>
+						<span className='text-xs font-bold'>{comboDict.savingsLabel || comboDict.badge || 'SALE'}</span>
 					</div>
 				</div>
 			)}
@@ -47,7 +46,8 @@ const ComboCard = ({ combo, index, dictionary = {}, currentLocale }: ComboCardPr
 						<div className='bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full shadow-lg flex items-center gap-1'>
 							<Package className='w-3 h-3 text-secondary' />
 							<span className='text-secondary font-bold text-xs'>
-								{combo.courseCount || safeArrayLength(combo.courses) || 3} Courses
+								{combo.courseCount || safeArrayLength(combo.courses) || 3}{' '}
+								{dict?.courses?.courses || 'courses'}
 							</span>
 						</div>
 					</div>
@@ -84,12 +84,12 @@ const ComboCard = ({ combo, index, dictionary = {}, currentLocale }: ComboCardPr
 						<Clock className='w-4 h-4' />
 						<span>{safeString(combo.totalDuration, '40h')}</span>
 					</div>
-
 					<div className='flex items-center gap-1'>
 						<Users className='w-4 h-4' />
-						<span>{combo.enrolledCount || 0} students</span>
+						<span>
+							{combo.enrolledCount || 0} {dict?.courses?.students || 'students'}
+						</span>
 					</div>
-
 					<div className='flex items-center gap-1'>
 						<Star className='w-4 h-4 fill-yellow-400 text-yellow-400' />
 						<span>{combo.rating || '4.9'}</span>
@@ -98,7 +98,9 @@ const ComboCard = ({ combo, index, dictionary = {}, currentLocale }: ComboCardPr
 
 				{/* Included Courses Preview - Fixed Height */}
 				<div className='mb-6 h-24 flex flex-col'>
-					<h4 className='text-sm font-semibold text-gray-700 mb-3 flex-shrink-0'>Included Courses:</h4>
+					<h4 className='text-sm font-semibold text-gray-700 mb-3 flex-shrink-0'>
+						{comboDict.includedCourses || 'Included Courses:'}
+					</h4>
 					<div className='flex-1 overflow-hidden'>
 						{Array.isArray(combo.courses) && combo.courses.length > 0 ? (
 							<div className='space-y-2'>
@@ -112,7 +114,7 @@ const ComboCard = ({ combo, index, dictionary = {}, currentLocale }: ComboCardPr
 								))}
 								{combo.courses.length > 3 && (
 									<div className='text-xs text-gray-500 ml-4'>
-										+{combo.courses.length - 3} more courses
+										+{combo.courses.length - 3} {comboDict.moreCourses || 'more courses'}
 									</div>
 								)}
 							</div>
@@ -121,7 +123,9 @@ const ComboCard = ({ combo, index, dictionary = {}, currentLocale }: ComboCardPr
 								{[1, 2, 3].map((idx) => (
 									<div key={idx} className='flex items-center gap-2 text-xs text-gray-400'>
 										<div className='w-2 h-2 bg-gray-300 rounded-full flex-shrink-0'></div>
-										<span className='line-clamp-1'>Course {idx}</span>
+										<span className='line-clamp-1'>
+											{comboDict.course || 'Course'} {idx}
+										</span>
 									</div>
 								))}
 							</div>
@@ -145,13 +149,14 @@ const ComboCard = ({ combo, index, dictionary = {}, currentLocale }: ComboCardPr
 							</div>
 							{hasDiscount && (
 								<p className='text-xs text-green-600 font-medium'>
-									Tiết kiệm {formatPrice(combo.originalPrice - combo.discountPrice)} (
-									{combo.discountPercentage}%)
+									{comboDict.savingsLabel || 'Savings'}{' '}
+									{formatPrice(combo.originalPrice - combo.discountPrice)} ({combo.discountPercentage}
+									%)
 								</p>
 							)}
 						</div>
 					) : (
-						<span className='text-2xl font-bold text-green-600'>Miễn phí</span>
+						<span className='text-2xl font-bold text-green-600'>{dict?.courses?.free || 'Free'}</span>
 					)}
 				</div>
 

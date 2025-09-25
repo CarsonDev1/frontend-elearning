@@ -12,6 +12,15 @@ interface BannerProps {
 			mainHeading: string;
 			subheading2: string;
 			button: string;
+			watchDemo: string;
+			demoTitle: string;
+			scrollDown: string;
+			stats: {
+				students: string;
+				successRate: string;
+				courses: string;
+				support: string;
+			};
 		};
 	};
 }
@@ -21,16 +30,13 @@ const Banner = ({ dictionary }: BannerProps) => {
 	const [showDemo, setShowDemo] = useState(false);
 
 	const handleLearnMore = () => {
-		// Scroll to the "Why Choose JPE" section
 		const whyChooseSection = document.getElementById('why-choose-section');
 		if (whyChooseSection) {
 			whyChooseSection.scrollIntoView({ behavior: 'smooth' });
 		}
 	};
 
-	const handleWatchDemo = () => {
-		setShowDemo(true);
-	};
+	const handleWatchDemo = () => setShowDemo(true);
 
 	return (
 		<div className='relative w-full min-h-screen flex items-center overflow-hidden'>
@@ -44,7 +50,6 @@ const Banner = ({ dictionary }: BannerProps) => {
 					priority
 					quality={90}
 				/>
-				{/* Modern gradient overlay */}
 				<div className='absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent'></div>
 				<div className='absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent'></div>
 			</div>
@@ -118,7 +123,7 @@ const Banner = ({ dictionary }: BannerProps) => {
 										d='M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
 									/>
 								</svg>
-								Watch Demo
+								{dictionary.banner.watchDemo}
 							</span>
 						</Button>
 					</div>
@@ -127,19 +132,19 @@ const Banner = ({ dictionary }: BannerProps) => {
 					<div className='flex flex-wrap gap-8 mt-12 pt-8 border-t border-white/20'>
 						<div className='text-center'>
 							<div className='text-2xl font-bold text-white'>10K+</div>
-							<div className='text-white/70 text-sm'>Students</div>
+							<div className='text-white/70 text-sm'>{dictionary.banner.stats.students}</div>
 						</div>
 						<div className='text-center'>
 							<div className='text-2xl font-bold text-white'>95%</div>
-							<div className='text-white/70 text-sm'>Success Rate</div>
+							<div className='text-white/70 text-sm'>{dictionary.banner.stats.successRate}</div>
 						</div>
 						<div className='text-center'>
 							<div className='text-2xl font-bold text-white'>50+</div>
-							<div className='text-white/70 text-sm'>Courses</div>
+							<div className='text-white/70 text-sm'>{dictionary.banner.stats.courses}</div>
 						</div>
 						<div className='text-center'>
 							<div className='text-2xl font-bold text-white'>24/7</div>
-							<div className='text-white/70 text-sm'>Support</div>
+							<div className='text-white/70 text-sm'>{dictionary.banner.stats.support}</div>
 						</div>
 					</div>
 				</div>
@@ -148,7 +153,7 @@ const Banner = ({ dictionary }: BannerProps) => {
 			{/* Scroll Indicator */}
 			<div className='absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10'>
 				<div className='flex flex-col items-center text-white/70 animate-bounce'>
-					<span className='text-sm mb-2'>Scroll Down</span>
+					<span className='text-sm mb-2'>{dictionary.banner.scrollDown}</span>
 					<svg className='w-6 h-6' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
 						<path
 							strokeLinecap='round'
@@ -164,7 +169,7 @@ const Banner = ({ dictionary }: BannerProps) => {
 			<Dialog open={showDemo} onOpenChange={setShowDemo}>
 				<DialogContent className='max-w-4xl'>
 					<DialogHeader>
-						<DialogTitle>JPE Japanese Learning Platform Demo</DialogTitle>
+						<DialogTitle>{dictionary.banner.demoTitle}</DialogTitle>
 					</DialogHeader>
 					<div className='relative pt-[56.25%] w-full'>
 						<iframe

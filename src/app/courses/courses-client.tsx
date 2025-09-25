@@ -195,9 +195,9 @@ function CoursesPageContent({ dictionary, currentLocale }: CoursesPageProps) {
   };
 
   // Format price for display
-  const formatPriceRange = (value: number) => {
-    return formatPrice(value, currentLocale === 'jp' ? 'ja-JP' : 'vi-VN', currentLocale === 'jp' ? 'JPY' : 'VND');
-  };
+   const formatPriceRange = (value: number) => {
+		return formatPrice(value, 'vi-VN', 'VND');
+   };
 
   // Pagination controls
   const totalPages = coursesData?.totalPages || 0;

@@ -208,19 +208,11 @@ export default function CoursePage() {
 										<div className='flex justify-between items-center'>
 											<div className='flex flex-col'>
 												<span className='text-3xl font-bold text-primary'>
-													{formatPrice(
-														course.price,
-														lang === 'jp' ? 'ja-JP' : 'vi-VN',
-														lang === 'jp' ? 'JPY' : 'VND'
-													)}
+													{formatPrice(course.price, 'vi-VN', 'VND')}
 												</span>
 												{!course.enrolled && (
 													<span className='text-gray-500 line-through text-sm'>
-														{formatPrice(
-															course.price * 1.2,
-															lang === 'jp' ? 'ja-JP' : 'vi-VN',
-															lang === 'jp' ? 'JPY' : 'VND'
-														)}
+														{formatPrice(course.price * 1.2, 'vi-VN', 'VND')}
 													</span>
 												)}
 											</div>

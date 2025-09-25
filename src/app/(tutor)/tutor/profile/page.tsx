@@ -614,6 +614,10 @@ const ProfilePage: React.FC = () => {
 											: 'Học viên'}
 									</div>
 								</div>
+
+								<div className='space-y-2'>
+									<Image src={user?.certificateUrls[0]} alt='Chứng chỉ' width={200} height={200} />
+								</div>
 							</div>
 
 							{/* Add teaching requirements field for tutors */}
@@ -849,20 +853,6 @@ const ProfilePage: React.FC = () => {
 									</Button>
 								</div>
 							)}
-						</CardContent>
-					</Card>
-				)}
-
-				{activeTab === 4 && (
-					<Card className='border-none shadow-md rounded-xl overflow-hidden'>
-						<CardHeader className='bg-gray-50 p-4 md:p-6'>
-							<CardTitle className='flex items-center text-lg md:text-xl'>
-								<Briefcase className='mr-2 h-5 w-5 md:h-6 md:w-6 text-primary' />
-								Chứng chỉ
-							</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<Image src={user?.certificateUrls[0]} alt='Chứng chỉ' width={200} height={200} />
 						</CardContent>
 					</Card>
 				)}

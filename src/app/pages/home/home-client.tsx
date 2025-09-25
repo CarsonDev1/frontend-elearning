@@ -183,11 +183,7 @@ function HomeClientContent({ dictionary }: { dictionary: any }) {
 								)}
 								{paymentState.amount > 0 && (
 									<p className='text-lg font-semibold text-primary mt-3'>
-										{formatPrice(
-											paymentState.amount,
-											lang === 'jp' ? 'ja-JP' : 'vi-VN',
-											lang === 'jp' ? 'JPY' : 'VND'
-										)}
+										{formatPrice(paymentState.amount, 'vi-VN', 'VND')}
 									</p>
 								)}
 								<Link href={`/${lang}/my-courses`} className='mt-6'>

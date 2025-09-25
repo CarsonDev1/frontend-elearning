@@ -37,7 +37,16 @@
 		"subheading1": "Học Tiếng Nhật Online cùng JPE",
 		"mainHeading": "ĐỖ JLPT SAU 3 THÁNG",
 		"subheading2": "Kết hợp cải thiện Kaiwa trong cuộc sống, công việc",
-		"button": "Tìm hiểu thêm"
+		"button": "Tìm hiểu thêm",
+		"watchDemo": "Xem demo",
+		"demoTitle": "Bản demo nền tảng học tiếng Nhật JPE",
+		"scrollDown": "Cuộn xuống",
+		"stats": {
+			"students": "Học viên",
+			"successRate": "Tỷ lệ đỗ",
+			"courses": "Khóa học",
+			"support": "Hỗ trợ"
+		}
 	},
 	"courses": {
 		"onlineCourses": "Các khóa học online",
@@ -290,7 +299,8 @@
 			"overview": "Tổng quan",
 			"courses": "Khóa học",
 			"payments": "Thanh toán",
-			"profile": "Hồ sơ"
+			"profile": "Hồ sơ",
+			"certificates": "Chứng chỉ"
 		},
 		"overview": {
 			"recentCourses": "Khóa học gần đây",

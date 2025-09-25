@@ -37,7 +37,16 @@
 		"subheading1": "JPEでオンライン日本語学習",
 		"mainHeading": "3ヶ月でJLPT合格",
 		"subheading2": "生活や仕事で会話力を向上させる",
-		"button": "詳細を見る"
+		"button": "詳細を見る",
+		"watchDemo": "デモを見る",
+		"demoTitle": "JPE日本語学習プラットフォームのデモ",
+		"scrollDown": "スクロール",
+		"stats": {
+			"students": "受講生",
+			"successRate": "合格率",
+			"courses": "コース",
+			"support": "サポート"
+		}
 	},
 	"courses": {
 		"onlineCourses": "オンラインコース",
@@ -261,7 +270,8 @@
 			"overview": "概要",
 			"courses": "コース",
 			"payments": "支払い",
-			"profile": "プロフィール"
+			"profile": "プロフィール",
+			"certificates": "証明書"
 		},
 		"overview": {
 			"recentCourses": "最近のコース",

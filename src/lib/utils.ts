@@ -56,7 +56,7 @@ export function formatPrice(price: number, locale: string = 'vi-VN', currency: s
 
   // Simple formatting to avoid SSR/client mismatch
   if (currency === 'VND') {
-    return `${price.toLocaleString('vi-VN')} ₫`;
+    return `${price.toLocaleString('vi-VN')} VND`;
   }
 
   if (currency === 'JPY') {

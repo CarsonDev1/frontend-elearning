@@ -22,6 +22,9 @@ import UserService from '@/services/user-service';
 import EnrollmentService from '@/services/enrollment-service';
 import PaymentHistoryService, { PaymentHistoryResponse } from '@/services/payment-history-service';
 
+import CertificateDisplay from '@/components/certificate-display';
+import CertificateService from '@/services/certificate-service';
+
 // Define fallback translations
 const fallbackDict = {
 	profile: {
@@ -90,6 +93,9 @@ const fallbackDict = {
 	user: {
 		login: 'Đăng nhập',
 	},
+	certificates: {
+		title: 'Chứng chỉ',
+	},
 };
 
 function StudentDashboardContent() {
@@ -122,6 +128,13 @@ function StudentDashboardContent() {
 	const { data: paymentHistory = [], isLoading: paymentLoading } = useQuery({
 		queryKey: ['myPaymentHistory'],
 		queryFn: PaymentHistoryService.getMyPaymentHistory,
+		enabled: !!user && user.roles?.includes('ROLE_STUDENT'),
+	});
+
+	// Certificates query
+	const { data: myCertificatesResp, isLoading: certsLoading } = useQuery({
+		queryKey: ['myCertificates', user?.id],
+		queryFn: () => CertificateService.getMyCertificates(0, 30),
 		enabled: !!user && user.roles?.includes('ROLE_STUDENT'),
 	});
 
@@ -243,8 +256,8 @@ function StudentDashboardContent() {
 								<CreditCardIcon className='h-8 w-8 text-purple-600' />
 								<div className='ml-4'>
 									<p className='text-sm font-medium text-gray-500'>{dict.profile.stats.totalSpent}</p>
-									<ClientOnly fallback={<p className='text-2xl font-bold'>$0</p>}>
-										<p className='text-2xl font-bold'>${totalSpent.toLocaleString()}</p>
+									<ClientOnly fallback={<p className='text-2xl font-bold'>0 VND</p>}>
+										<p className='text-2xl font-bold'>{totalSpent.toLocaleString('vi-VN')} VND</p>
 									</ClientOnly>
 								</div>
 							</div>
@@ -254,10 +267,11 @@ function StudentDashboardContent() {
 
 				{/* Main Content Tabs */}
 				<Tabs value={activeTab} onValueChange={setActiveTab} className='space-y-6'>
-					<TabsList className='grid w-full grid-cols-4'>
+					<TabsList className='grid w-full grid-cols-5'>
 						<TabsTrigger value='overview'>{dict.profile.tabs.overview}</TabsTrigger>
 						<TabsTrigger value='courses'>{dict.profile.tabs.courses}</TabsTrigger>
 						<TabsTrigger value='payments'>{dict.profile.tabs.payments}</TabsTrigger>
+						<TabsTrigger value='certificates'>{dict.profile.tabs.certificates}</TabsTrigger>
 						<TabsTrigger value='profile'>{dict.profile.tabs.profile}</TabsTrigger>
 					</TabsList>
 
@@ -408,6 +422,17 @@ function StudentDashboardContent() {
 						</div>
 					</TabsContent>
 
+					{/* Certificates Tab */}
+					<TabsContent value='certificates' className='space-y-6'>
+						{certsLoading ? (
+							<div className='flex justify-center py-12'>
+								<div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary'></div>
+							</div>
+						) : (
+							<CertificateDisplay certificates={myCertificatesResp?.content || []} dict={dict} />
+						)}
+					</TabsContent>
+
 					{/* Payments Tab */}
 					<TabsContent value='payments' className='space-y-6'>
 						<Card>
@@ -453,16 +478,17 @@ function StudentDashboardContent() {
 													<p className='text-xs text-gray-400'>ID: {payment.transactionId}</p>
 												</div>
 												<div className='text-right'>
-													<ClientOnly fallback={<p className='font-semibold'>$0</p>}>
+													<ClientOnly fallback={<p className='font-semibold'>0 VND</p>}>
 														<p className='font-semibold'>
-															$
-															{typeof payment.pricePaid === 'number' &&
+															{(typeof payment.pricePaid === 'number' &&
 															!isNaN(payment.pricePaid)
-																? payment.pricePaid.toLocaleString()
+																? payment.pricePaid
 																: typeof payment.amount === 'number' &&
 																  !isNaN(payment.amount)
-																? payment.amount.toLocaleString()
-																: '0'}
+																? payment.amount
+																: 0
+															).toLocaleString('vi-VN')}{' '}
+															VND
 														</p>
 													</ClientOnly>
 													<Badge

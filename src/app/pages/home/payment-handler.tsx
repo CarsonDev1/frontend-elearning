@@ -177,15 +177,15 @@ function PaymentHandlerContent({ dictionary, lang }: PaymentHandlerProps) {
 							<p className='text-sm text-gray-500 mt-1'>{paymentState.orderInfo}</p>
 						)}
 						{paymentState.amount > 0 && (
-							<p className='text-lg font-semibold text-primary mt-3'>
-								{formatPrice(
-									paymentState.amount,
-									lang === 'jp' ? 'ja-JP' : 'vi-VN',
-									lang === 'jp' ? 'JPY' : 'VND'
+							<div className='text-lg font-semibold text-primary mt-3'>
+								{paymentState.amount > 0 && (
+									<p className='text-lg font-semibold text-primary mt-3'>
+										{formatPrice(paymentState.amount, 'vi-VN', 'VND')}
+									</p>
 								)}
-							</p>
+							</div>
 						)}
-						<Link href={`/${lang}/my-courses`} className='mt-6'>
+						<Link href={`https://frontend-elearning-flax.vercel.app/vi/my-course`} className='mt-6'>
 							<Button className='bg-primary hover:bg-primary-dark text-white px-6 py-2'>
 								{dictionary?.payment?.goToCourses || 'Go to My Courses'}
 							</Button>
