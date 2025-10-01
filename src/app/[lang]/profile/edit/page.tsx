@@ -94,7 +94,21 @@ function EditProfileContent() {
 	const editProfileSchema = z.object({
 		fullName: z.string().min(2, dict.profileEdit.validation.fullNameRequired),
 		email: z.string().email(dict.profileEdit.validation.emailInvalid),
-		phoneNumber: z.string().optional(),
+		phoneNumber: z
+			.string()
+			.optional()
+			.refine(
+				(value) => {
+					if (!value) return true; // Allow empty phone number
+					// Vietnamese phone number validation: starts with +84 or 0, followed by 8-9 digits
+					const phoneRegex = /^(?:\+84|0)([3|5|7|8|9])([0-9]{7,8})$/;
+					return phoneRegex.test(value.replace(/\s/g, ''));
+				},
+				{
+					message:
+						'Số điện thoại không hợp lệ. Vui lòng nhập đúng định dạng (VD: 0123456789 hoặc +84987654321)',
+				}
+			),
 	});
 
 	type EditProfileFormData = z.infer<typeof editProfileSchema>;

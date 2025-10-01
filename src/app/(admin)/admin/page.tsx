@@ -241,7 +241,7 @@ const Admin = () => {
 					<CardContent>
 						<div className='flex flex-col items-center justify-center h-72'>
 							<div className='text-6xl font-bold text-[#58cc02] mb-4'>
-								${statistics?.totalRevenue.toLocaleString() || '0'}
+								{statistics?.totalRevenue.toLocaleString() || '0'}VNĐ
 							</div>
 							<p className='text-xl text-gray-600 mb-6'>Tổng Doanh Thu</p>
 
