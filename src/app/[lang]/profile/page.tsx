@@ -262,7 +262,7 @@ function StudentDashboardContent() {
 
 				{/* Main Content Tabs */}
 				<Tabs value={activeTab} onValueChange={setActiveTab} className='space-y-6'>
-					<TabsList className='grid w-full grid-cols-5'>
+					<TabsList className='grid w-full grid-cols-4'>
 						<TabsTrigger value='overview'>{dict.profile.tabs.overview}</TabsTrigger>
 						<TabsTrigger value='courses'>{dict.profile.tabs.courses}</TabsTrigger>
 						<TabsTrigger value='payments'>{dict.profile.tabs.payments}</TabsTrigger>
