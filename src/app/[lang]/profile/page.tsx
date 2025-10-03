@@ -22,7 +22,6 @@ import UserService from '@/services/user-service';
 import EnrollmentService from '@/services/enrollment-service';
 import PaymentHistoryService, { PaymentHistoryResponse } from '@/services/payment-history-service';
 
-import CertificateDisplay from '@/components/certificate-display';
 import CertificateService from '@/services/certificate-service';
 
 // Define fallback translations
@@ -64,7 +63,6 @@ const fallbackDict = {
 			completed: 'Hoàn thành',
 			continueLearning: 'Tiếp tục học',
 			reviewCourse: 'Xem lại',
-			certificate: 'Chứng chỉ',
 		},
 		payments: {
 			paymentHistory: 'Lịch sử thanh toán',
@@ -92,9 +90,6 @@ const fallbackDict = {
 	},
 	user: {
 		login: 'Đăng nhập',
-	},
-	certificates: {
-		title: 'Chứng chỉ',
 	},
 };
 
@@ -271,7 +266,6 @@ function StudentDashboardContent() {
 						<TabsTrigger value='overview'>{dict.profile.tabs.overview}</TabsTrigger>
 						<TabsTrigger value='courses'>{dict.profile.tabs.courses}</TabsTrigger>
 						<TabsTrigger value='payments'>{dict.profile.tabs.payments}</TabsTrigger>
-						<TabsTrigger value='certificates'>{dict.profile.tabs.certificates}</TabsTrigger>
 						<TabsTrigger value='profile'>{dict.profile.tabs.profile}</TabsTrigger>
 					</TabsList>
 
@@ -420,17 +414,6 @@ function StudentDashboardContent() {
 								</Card>
 							))}
 						</div>
-					</TabsContent>
-
-					{/* Certificates Tab */}
-					<TabsContent value='certificates' className='space-y-6'>
-						{certsLoading ? (
-							<div className='flex justify-center py-12'>
-								<div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary'></div>
-							</div>
-						) : (
-							<CertificateDisplay certificates={myCertificatesResp?.content || []} dict={dict} />
-						)}
 					</TabsContent>
 
 					{/* Payments Tab */}
